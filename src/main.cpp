@@ -2,6 +2,8 @@
  * Copyright 2025 
 */
 #include <iostream>
+
+#include "udcp/udcp.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
@@ -11,22 +13,33 @@
 
 int main () {
   cv::VideoCapture video("../media/underwater.mp4");
+  /*cv::VideoWriter writer;*/
+  /*int codec = cv::VideoWriter::fourcc('m', 'p', '4', 'v');*/
   cv::Mat frame;
-  SimpleEnhancer se(false);
+  SimpleEnhancer se(false, SimpleEnhancer::fusionMode_::AVG);
+  UDCP udcp(false, 10);
   if(!video.isOpened()){
     std::cout << "Unable to open video" << std::endl;
     exit(1);
   }
-  int counter = 30;
-  while(counter--){
+
+  /*writer.open("../media/avg.mp4", codec, video.get(cv::CAP_PROP_FPS), cv::Size(1920, 1080));*/
+  /*uint counter = 0;*/
+  while(true){
     video >> frame;
-    cv::resize(frame, frame, cv::Size(frame.cols/2, frame.rows/2));
     if(frame.empty()){
       break;
     }
-    se.enhance(frame);
-    cv::imshow("res", se.enhance(frame));
-    cv::waitKey(2);
+    cv::resize(frame, frame, cv::Size(frame.cols/2, frame.rows/2));
+    udcp.enhance(frame);
+    /*cv::imshow("res", se.enhance(frame));*/
+    /*cv::waitKey(1);*/
+
+    /*writer.write(se.enhance(frame));*/
+    /*std::cout << counter++ << " / " << video.get(cv::CAP_PROP_FRAME_COUNT) << std::endl;*/
   }
+
+  video.release();
+  /*writer.release();*/
   return 0;
 }

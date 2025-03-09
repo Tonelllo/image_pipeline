@@ -3,8 +3,6 @@
 */
 #include "simpleEnhancer.hpp"
 
-#include <iostream>
-#include <algorithm>
 #include <opencv2/core/hal/interface.h>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/core.hpp>
@@ -12,8 +10,9 @@
 #include <opencv2/highgui.hpp>
 
 
-SimpleEnhancer::SimpleEnhancer(bool showSteps){
+SimpleEnhancer::SimpleEnhancer(bool showSteps, fusionMode_ fm){
   mShowSteps_ = showSteps;
+  mFusionMode_ = fm;
 }
 cv::Mat SimpleEnhancer::compensateRedBlue(cv::Mat& image){
   cv::Mat channels[3];
@@ -30,40 +29,26 @@ cv::Mat SimpleEnhancer::compensateRedBlue(cv::Mat& image){
   cv::minMaxLoc(channels[GREEN], &gMin, &gMax);
   cv::minMaxLoc(channels[RED], &rMin, &rMax);
 
-  normChs[BLUE] = cv::Mat::zeros(channels[BLUE].size(), CV_64FC1);
-  normChs[GREEN] = cv::Mat::zeros(channels[GREEN].size(), CV_64FC1);
-  normChs[RED] = cv::Mat::zeros(channels[RED].size(), CV_64FC1);
+  cv::normalize(channels[BLUE], normChs[BLUE], 1, 0, cv::NORM_MINMAX, CV_64FC1);
+  cv::normalize(channels[GREEN], normChs[GREEN], 1, 0, cv::NORM_MINMAX, CV_64FC1);
+  cv::normalize(channels[RED], normChs[RED], 1, 0, cv::NORM_MINMAX, CV_64FC1);
 
-  /*cv::normalize(normChs[BLUE], normChs[BLUE], 1, 0, cv::NORM_MINMAX);*/
-  /*cv::normalize(normChs[GREEN], normChs[GREEN], 1, 0, cv::NORM_MINMAX);*/
-  /*cv::normalize(normChs[RED], normChs[RED], 1, 0, cv::NORM_MINMAX);*/
-  for(size_t y = 0; y < channels[RED].rows; y++){
-    for(size_t x = 0; x < channels[RED].cols; x++){
-      normChs[BLUE].at<double>(y, x) = (static_cast<double>(channels[BLUE].at<uint8_t>(y, x))
-        - bMin) / (bMax - bMin);
-      normChs[GREEN].at<double>(y, x) = (static_cast<double>(channels[GREEN].at<uint8_t>(y, x))
-        - gMin) / (gMax - gMin);
-      normChs[RED].at<double>(y, x) = (static_cast<double>(channels[RED].at<uint8_t>(y, x))
-        - rMin) / (rMax - rMin);
-    }
-  }
   bMean = cv::mean(normChs[BLUE])[0];
   gMean = cv::mean(normChs[GREEN])[0];
   rMean = cv::mean(normChs[RED])[0];
 
-  for(size_t y = 0; y < normChs[BLUE].rows; y++){
-    for(size_t x = 0; x < normChs[BLUE].cols; x++){
-      channels[BLUE].at<uint8_t>(y, x) = round((normChs[BLUE].at<double>(y, x) + (gMean - bMean) *
-        (1-normChs[BLUE].at<double>(y, x)) * normChs[GREEN].at<double>(y, x)) * bMax);
-      channels[RED].at<uint8_t>(y, x) = round((normChs[RED].at<double>(y, x) + (gMean - rMean) *
-        (1-normChs[RED].at<double>(y, x)) * normChs[GREEN].at<double>(y, x)) * rMax);
-    }
-  }
-  for(size_t y = 0; y < normChs[GREEN].rows; y++){
-    for(size_t x = 0; x < normChs[GREEN].cols; x++){
-      channels[GREEN].at<uint8_t>(y, x) = round(normChs[GREEN].at<double>(y, x) * gMax);
-    }
-  }
+  cv::Mat tmp(normChs[GREEN].size(), normChs[GREEN].type());
+  cv::multiply(cv::Scalar(1) - normChs[BLUE], normChs[GREEN], tmp);
+  cv::Mat a = (normChs[BLUE] + (gMean - bMean) * tmp) * bMax;
+  a.convertTo(channels[BLUE], CV_8UC1);
+
+  cv::multiply(cv::Scalar(1) - normChs[RED], normChs[GREEN], tmp);
+  cv::Mat b = (normChs[RED] + (gMean - rMean) * tmp) * rMax;
+  b.convertTo(channels[RED], CV_8UC1);
+
+
+  cv::Mat c = normChs[GREEN] * gMax;
+  c.convertTo(channels[GREEN], CV_8UC1);
 
   cv::merge(channels, 3, compensated);
 
@@ -83,17 +68,18 @@ cv::Mat SimpleEnhancer::greyWorldAlg(cv::Mat& image){
   rMean = cv::mean(channels[RED])[0];
   bnMean = cv::mean(gray)[0];
 
+  cv::Mat dchannels[3];
+  channels[BLUE].convertTo(dchannels[BLUE], CV_64FC1);
+  channels[GREEN].convertTo(dchannels[GREEN], CV_64FC1);
+  channels[RED].convertTo(dchannels[RED], CV_64FC1);
 
-  for(size_t y = 0; y < channels[RED].rows; y++){
-    for(size_t x = 0; x < channels[RED].cols; x++){
-      channels[BLUE].at<uint8_t>(y, x) = round(static_cast<double>(
-        channels[BLUE].at<uint8_t>(y, x)) * bnMean / bMean);
-      channels[GREEN].at<uint8_t>(y, x) = round(static_cast<double>(
-        channels[GREEN].at<uint8_t>(y, x)) * bnMean / gMean);
-      channels[RED].at<uint8_t>(y, x) = round(static_cast<double>(
-        channels[RED].at<uint8_t>(y, x)) * bnMean / rMean);
-    }
-  }
+  dchannels[BLUE] *= (bnMean / bMean);
+  dchannels[GREEN] *= (bnMean / gMean);
+  dchannels[RED] *= (bnMean / rMean);
+
+  dchannels[BLUE].convertTo(channels[BLUE], CV_8UC1);
+  dchannels[RED].convertTo(channels[RED], CV_8UC1);
+  dchannels[GREEN].convertTo(channels[GREEN], CV_8UC1);
 
   cv::merge(channels, 3, out);
 
@@ -104,7 +90,7 @@ cv::Mat SimpleEnhancer::sharpen(cv::Mat& image){
   cv::Mat process;
   cv::GaussianBlur(image, process, cv::Size(3, 3), 0.5);
   // 1.5
-  cv::addWeighted(image, 2.0, process, -0.5, 0, process);
+  cv::addWeighted(image, 1.5, process, -0.5, 0, process);
   return process;
 }
 
@@ -124,6 +110,37 @@ cv::Mat SimpleEnhancer::equalizeVal(cv::Mat& image){
   return ret;
 }
 
+cv::Mat SimpleEnhancer::avgFusion(cv::Mat& image1, cv::Mat& image2){
+  cv::Mat channels1[3];
+  cv::Mat channels2[3];
+  cv::Mat avgs[3];
+  cv::Mat ret;
+
+  cv::split(image1, channels1);
+  cv::split(image2, channels2);
+
+  cv::Mat acc(image1.size(), CV_64FC1, cv::Scalar(0));
+
+  cv::accumulate(channels1[BLUE], acc);
+  cv::accumulate(channels2[BLUE], acc);
+  acc.convertTo(avgs[BLUE], CV_8UC1, 1.0/2);
+
+  acc = cv::Mat(image1.size(), CV_64FC1, cv::Scalar(0));
+
+  cv::accumulate(channels1[GREEN], acc);
+  cv::accumulate(channels2[GREEN], acc);
+  acc.convertTo(avgs[GREEN], CV_8UC1, 1.0/2);
+
+  acc = cv::Mat(image1.size(), CV_64FC1, cv::Scalar(0));
+
+  cv::accumulate(channels1[RED], acc);
+  cv::accumulate(channels2[RED], acc);
+  acc.convertTo(avgs[RED], CV_8UC1, 1.0/2);
+
+  cv::merge(avgs, 3, ret);
+
+  return ret;
+}
 cv::Mat SimpleEnhancer::pcaFusion(cv::Mat& image1, cv::Mat& image2){
   cv::Mat channels1[3];
   cv::Mat channels2[3];
@@ -184,9 +201,18 @@ cv::Mat SimpleEnhancer::enhance(cv::Mat& image){
   if(mShowSteps_){
     cv::imshow("equalized hist", contrasted);
   }
-  ret = pcaFusion(sharpened, contrasted);
-  if(mShowSteps_){
-    cv::imshow("pca fused", ret);
+  if(mFusionMode_ == fusionMode_::PCA){
+    ret = pcaFusion(sharpened, contrasted);
+    if(mShowSteps_){
+      cv::imshow("pca fused", ret);
+    }
+  }else if(mFusionMode_ == fusionMode_::AVG){
+    ret = avgFusion(sharpened, contrasted);
+    if(mShowSteps_){
+      cv::imshow("avg fused", ret);
+    }
+  }else{
+    throw "Unsupported fusion method";
   }
 
   return ret;
