@@ -12,22 +12,21 @@
 int main () {
   cv::VideoCapture video("../media/underwater.mp4");
   cv::Mat frame;
-  SimpleEnhancer se;
+  SimpleEnhancer se(false);
   if(!video.isOpened()){
     std::cout << "Unable to open video" << std::endl;
     exit(1);
   }
-
-  while(true){
+  int counter = 30;
+  while(counter--){
     video >> frame;
     cv::resize(frame, frame, cv::Size(frame.cols/2, frame.rows/2));
     if(frame.empty()){
       break;
     }
     se.enhance(frame);
-    /*cv::imshow("res", se.enhance(frame));*/
-    /*cv::waitKey(10);*/
-    break;
+    cv::imshow("res", se.enhance(frame));
+    cv::waitKey(2);
   }
   return 0;
 }
