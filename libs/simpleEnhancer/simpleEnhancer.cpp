@@ -29,9 +29,9 @@ cv::Mat SimpleEnhancer::compensateRedBlue(cv::Mat& image){
   cv::minMaxLoc(channels[GREEN], &gMin, &gMax);
   cv::minMaxLoc(channels[RED], &rMin, &rMax);
 
-  cv::normalize(channels[BLUE], normChs[BLUE], 1, 0, cv::NORM_MINMAX, CV_64FC1);
-  cv::normalize(channels[GREEN], normChs[GREEN], 1, 0, cv::NORM_MINMAX, CV_64FC1);
-  cv::normalize(channels[RED], normChs[RED], 1, 0, cv::NORM_MINMAX, CV_64FC1);
+  channels[BLUE].convertTo(normChs[BLUE], CV_64FC1, 1.0 / 255.0);
+  channels[GREEN].convertTo(normChs[GREEN], CV_64FC1, 1.0 / 255.0);
+  channels[RED].convertTo(normChs[RED], CV_64FC1, 1.0 / 255.0);
 
   bMean = cv::mean(normChs[BLUE])[0];
   gMean = cv::mean(normChs[GREEN])[0];
@@ -160,8 +160,8 @@ cv::Mat SimpleEnhancer::pcaFusion(cv::Mat& image1, cv::Mat& image2){
 
     combined = cv::Mat::zeros(2, channel1.cols, CV_64F);
 
-    channel1.convertTo(combined.row(0), CV_64F);
-    channel2.convertTo(combined.row(1), CV_64F);
+    channel1.convertTo(combined.row(0), CV_64F, 1.0 / 255.0);
+    channel2.convertTo(combined.row(1), CV_64F, 1.0 / 255.0);
 
     cv::normalize(combined.row(0), combined.row(0), 0, 1, cv::NORM_MINMAX, CV_64F);
     cv::normalize(combined.row(1), combined.row(1), 0, 1, cv::NORM_MINMAX, CV_64F);

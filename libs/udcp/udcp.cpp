@@ -4,8 +4,10 @@
 #include <iostream>
 #include <opencv2/core.hpp>
 #include <opencv2/core/hal/interface.h>
+#include <opencv2/ximgproc.hpp>
 #include <opencv2/core/types.hpp>
 #include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 #include <udcp/udcp.hpp>
 #include <vector>
 
@@ -16,8 +18,19 @@ UDCP::UDCP(bool showImage, uint windowSize){
 
 cv::Mat UDCP::getDarkChannel(cv::Mat& image){
   cv::Mat channels[3];
+  cv::Mat dc, kernel, dark;
+  cv::split(image, channels);
+  dc = cv::min(cv::min(channels[RED], channels[GREEN]), channels[BLUE]);
+  kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(mWindowSize_, mWindowSize_));
+  cv::erode(dc, dark, kernel);
+  return dark;
+}
+cv::Mat UDCP::getDarkChannel2(cv::Mat& image){
+  cv::Mat channels[3];
   cv::Mat gPadded, bPadded;
   cv::Mat dark(image.size(), CV_8UC1);
+  r = 4 * mWindowSize_;
+  eps = 10e-6;
 
   cv::split(image, channels);
 
@@ -92,21 +105,62 @@ cv::Mat UDCP::getAtmosphere(cv::Mat& orig, cv::Mat image){
   return cv::Mat(image.size(), CV_8UC3, cv::Scalar(bMean, gMean, rMean));
 }
 
-cv::Mat UDCP::getNeg(cv::Mat& image, cv::Mat atm){
+cv::Mat UDCP::getNeg(cv::Mat image, cv::Mat atm){
   cv::Mat res;
+  cv::Mat dc;
+
+  image.convertTo(image, CV_64FC3);
+  atm.convertTo(atm, CV_64FC3);
+
+  atm.convertTo(atm, CV_64FC3, 1.0 / 255.0);
+  image.convertTo(image, CV_64FC3, 1.0 / 255.0);
+
+
   cv::divide(image, atm, res);
-  cv::imshow("res", res);
-  return {};
+
+  res.convertTo(res, CV_8UC3, 255.0);
+
+
+  dc = getDarkChannel(res);
+
+  dc = 255 - dc;
+
+  return dc;
+}
+
+cv::Mat UDCP::finalPass(cv::Mat image, cv::Mat atm, cv::Mat guided){
+  cv::Mat guided3;
+  cv::Mat tmp[3];
+  cv::Mat res;
+
+  tmp[0] = guided;
+  tmp[1] = guided;
+  tmp[2] = guided;
+
+  cv::merge(tmp, 3, guided3);
+
+  image.convertTo(image, CV_64FC3, 1.0 / 255.0);
+  atm.convertTo(atm, CV_64FC3, 1.0 / 255.0);
+  guided3.convertTo(guided3, CV_64FC3, 1.0 / 255.0);
+
+  cv::divide(image - atm, guided3, res);
+  res += atm;
+  res.convertTo(res, CV_8UC3, 255.0);
+  return res;
 }
 
 cv::Mat UDCP::enhance(cv::Mat& image){
   cv::Mat process;
   cv::Mat darkCh;
+  cv::Mat darkCh2;
   cv::Mat atm;
+  cv::Mat guided;
+  cv::Mat bwImage;
   darkCh = getDarkChannel(image);
   atm = getAtmosphere(image, darkCh.clone());
-  process = getNeg(image, atm.clone());
-  cv::imshow("process", atm);
-  cv::waitKey(0);
-  return image;
+  process = getNeg(image.clone(), atm.clone());
+  image.convertTo(bwImage, CV_8UC1);
+  cv::ximgproc::guidedFilter(bwImage, process, guided, r, eps);
+  process = finalPass(image, atm, guided);
+  return process;
 }

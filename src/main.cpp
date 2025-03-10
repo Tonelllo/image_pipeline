@@ -24,16 +24,17 @@ int main () {
   }
 
   /*writer.open("../media/avg.mp4", codec, video.get(cv::CAP_PROP_FPS), cv::Size(1920, 1080));*/
-  /*uint counter = 0;*/
+  /*uint counter = 5;*/
   while(true){
     video >> frame;
     if(frame.empty()){
       break;
     }
     cv::resize(frame, frame, cv::Size(frame.cols/2, frame.rows/2));
-    udcp.enhance(frame);
-    /*cv::imshow("res", se.enhance(frame));*/
-    /*cv::waitKey(1);*/
+    cv::imshow("orig", frame);
+    cv::imshow("udcp", udcp.enhance(frame));
+    cv::imshow("alg", se.enhance(frame));
+    cv::waitKey(1);
 
     /*writer.write(se.enhance(frame));*/
     /*std::cout << counter++ << " / " << video.get(cv::CAP_PROP_FRAME_COUNT) << std::endl;*/
