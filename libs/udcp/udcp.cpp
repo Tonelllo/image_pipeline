@@ -14,6 +14,8 @@
 UDCP::UDCP(bool showImage, uint windowSize){
   mShowImage_ = showImage;
   mWindowSize_ = windowSize;
+  r = 60;
+  eps = 0.0001;
 }
 
 cv::Mat UDCP::getDarkChannel(cv::Mat& image){
@@ -23,51 +25,6 @@ cv::Mat UDCP::getDarkChannel(cv::Mat& image){
   dc = cv::min(cv::min(channels[RED], channels[GREEN]), channels[BLUE]);
   kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(mWindowSize_, mWindowSize_));
   cv::erode(dc, dark, kernel);
-  return dark;
-}
-cv::Mat UDCP::getDarkChannel2(cv::Mat& image){
-  cv::Mat channels[3];
-  cv::Mat gPadded, bPadded;
-  cv::Mat dark(image.size(), CV_8UC1);
-  r = 4 * mWindowSize_;
-  eps = 10e-6;
-
-  cv::split(image, channels);
-
-  cv::copyMakeBorder(
-    channels[GREEN],
-    gPadded,
-    mWindowSize_/2,
-    mWindowSize_/2,
-    mWindowSize_/2,
-    mWindowSize_/2,
-    cv::BORDER_CONSTANT,
-    cv::Scalar(255));
-
-  cv::copyMakeBorder(
-    channels[BLUE],
-    bPadded,
-    mWindowSize_/2,
-    mWindowSize_/2,
-    mWindowSize_/2,
-    mWindowSize_/2,
-    cv::BORDER_CONSTANT,
-    cv::Scalar(255));
-
-  uchar* darkPtr = nullptr;
-  for(size_t y = 0; y < gPadded.rows - mWindowSize_; y++){
-    for(size_t x = 0; x < gPadded.cols - mWindowSize_; x++){
-      double gMin, bMin;
-
-      cv::Mat gRoi(gPadded(cv::Rect(x, y, mWindowSize_, mWindowSize_)));
-      cv::Mat bRoi(bPadded(cv::Rect(x, y, mWindowSize_, mWindowSize_)));
-      cv::minMaxLoc(gRoi, &gMin, nullptr);
-      cv::minMaxLoc(bRoi, &bMin, nullptr);
-
-      darkPtr = dark.ptr<uchar>(y);
-      darkPtr[x] = static_cast<uchar>(fmin(gMin, bMin));
-    }
-  }
   return dark;
 }
 
@@ -84,10 +41,6 @@ cv::Mat UDCP::getAtmosphere(cv::Mat& orig, cv::Mat image){
 
   cv::split(orig, channels);
 
-  channels[BLUE].convertTo(channels[BLUE], CV_64FC1);
-  channels[GREEN].convertTo(channels[GREEN], CV_64FC1);
-  channels[RED].convertTo(channels[RED], CV_64FC1);
-
   // Maybe thresholding
   for(size_t i = 0; i < selectPixNum; i++){
     cv::minMaxLoc(image, nullptr, &dMax, nullptr, &dpMax);
@@ -102,28 +55,18 @@ cv::Mat UDCP::getAtmosphere(cv::Mat& orig, cv::Mat image){
   gMean /= selectPixNum;
   rMean /= selectPixNum;
 
-  return cv::Mat(image.size(), CV_8UC3, cv::Scalar(bMean, gMean, rMean));
+  return cv::Mat(image.size(), CV_64FC3, cv::Scalar(bMean, gMean, rMean));
 }
 
-cv::Mat UDCP::getNeg(cv::Mat image, cv::Mat atm){
+cv::Mat UDCP::transmissionEstimate(cv::Mat image, cv::Mat atm){
   cv::Mat res;
   cv::Mat dc;
 
-  image.convertTo(image, CV_64FC3);
-  atm.convertTo(atm, CV_64FC3);
-
-  atm.convertTo(atm, CV_64FC3, 1.0 / 255.0);
-  image.convertTo(image, CV_64FC3, 1.0 / 255.0);
-
-
   cv::divide(image, atm, res);
-
-  res.convertTo(res, CV_8UC3, 255.0);
-
 
   dc = getDarkChannel(res);
 
-  dc = 255 - dc;
+  dc = 1 - dc;
 
   return dc;
 }
@@ -139,9 +82,7 @@ cv::Mat UDCP::finalPass(cv::Mat image, cv::Mat atm, cv::Mat guided){
 
   cv::merge(tmp, 3, guided3);
 
-  image.convertTo(image, CV_64FC3, 1.0 / 255.0);
-  atm.convertTo(atm, CV_64FC3, 1.0 / 255.0);
-  guided3.convertTo(guided3, CV_64FC3, 1.0 / 255.0);
+  guided3.convertTo(guided3, CV_64FC3);
 
   cv::divide(image - atm, guided3, res);
   res += atm;
@@ -152,15 +93,18 @@ cv::Mat UDCP::finalPass(cv::Mat image, cv::Mat atm, cv::Mat guided){
 cv::Mat UDCP::enhance(cv::Mat& image){
   cv::Mat process;
   cv::Mat darkCh;
-  cv::Mat darkCh2;
   cv::Mat atm;
   cv::Mat guided;
   cv::Mat bwImage;
-  darkCh = getDarkChannel(image);
-  atm = getAtmosphere(image, darkCh.clone());
-  process = getNeg(image.clone(), atm.clone());
-  image.convertTo(bwImage, CV_8UC1);
+  cv::Mat normImage;
+  image.convertTo(normImage, CV_64FC3, 1.0 / 255.0);
+
+  darkCh = getDarkChannel(normImage);
+  atm = getAtmosphere(normImage, darkCh.clone());
+  process = transmissionEstimate(normImage, atm.clone());
+  image.convertTo(bwImage, CV_32F);
+  process.convertTo(process, CV_32F);
   cv::ximgproc::guidedFilter(bwImage, process, guided, r, eps);
-  process = finalPass(image, atm, guided);
+  process = finalPass(normImage, atm, guided);
   return process;
 }

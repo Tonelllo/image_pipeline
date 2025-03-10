@@ -17,7 +17,7 @@ int main () {
   /*int codec = cv::VideoWriter::fourcc('m', 'p', '4', 'v');*/
   cv::Mat frame;
   SimpleEnhancer se(false, SimpleEnhancer::fusionMode_::AVG);
-  UDCP udcp(false, 10);
+  UDCP udcp(false, 25);
   if(!video.isOpened()){
     std::cout << "Unable to open video" << std::endl;
     exit(1);
@@ -31,9 +31,9 @@ int main () {
       break;
     }
     cv::resize(frame, frame, cv::Size(frame.cols/2, frame.rows/2));
-    cv::imshow("orig", frame);
+    /*cv::imshow("orig", frame);*/
     cv::imshow("udcp", udcp.enhance(frame));
-    cv::imshow("alg", se.enhance(frame));
+    /*cv::imshow("alg", se.enhance(frame));*/
     cv::waitKey(1);
 
     /*writer.write(se.enhance(frame));*/
