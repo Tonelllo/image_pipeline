@@ -10,9 +10,9 @@ public:
   cv::Mat enhance(cv::Mat&);
 private:
   cv::Mat getDarkChannel(cv::Mat&);
-  cv::Mat getAtmosphere(cv::Mat&, cv::Mat);
-  cv::Mat transmissionEstimate(cv::Mat, cv::Mat);
-  cv::Mat finalPass(cv::Mat, cv::Mat, cv::Mat);
+  cv::Mat getAtmosphere(cv::Mat&, cv::Mat&);
+  cv::Mat transmissionEstimate(cv::Mat&, cv::Mat&);
+  cv::Mat finalPass(cv::Mat&, cv::Mat&, cv::Mat&);
   enum channels{BLUE, GREEN, RED};
   bool mShowImage_;
   uint mWindowSize_;

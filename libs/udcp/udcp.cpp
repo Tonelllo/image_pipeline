@@ -1,15 +1,17 @@
 /*
 * copyright 2025
 */
-#include <iostream>
-#include <opencv2/core.hpp>
 #include <opencv2/core/hal/interface.h>
+
+#include <iostream>
+#include <vector>
+
+#include <opencv2/core.hpp>
 #include <opencv2/ximgproc.hpp>
 #include <opencv2/core/types.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <udcp/udcp.hpp>
-#include <vector>
 
 UDCP::UDCP(bool showImage, uint windowSize){
   mShowImage_ = showImage;
@@ -28,7 +30,7 @@ cv::Mat UDCP::getDarkChannel(cv::Mat& image){
   return dark;
 }
 
-cv::Mat UDCP::getAtmosphere(cv::Mat& orig, cv::Mat image){
+cv::Mat UDCP::getAtmosphere(cv::Mat& orig, cv::Mat& image){
   // TODO(tonello) parameterize
   uint selectPixNum = floor(image.rows * image.cols * 0.0001);
   double dMax;
@@ -58,7 +60,7 @@ cv::Mat UDCP::getAtmosphere(cv::Mat& orig, cv::Mat image){
   return cv::Mat(image.size(), CV_64FC3, cv::Scalar(bMean, gMean, rMean));
 }
 
-cv::Mat UDCP::transmissionEstimate(cv::Mat image, cv::Mat atm){
+cv::Mat UDCP::transmissionEstimate(cv::Mat& image, cv::Mat& atm){
   cv::Mat res;
   cv::Mat dc;
 
@@ -71,7 +73,7 @@ cv::Mat UDCP::transmissionEstimate(cv::Mat image, cv::Mat atm){
   return dc;
 }
 
-cv::Mat UDCP::finalPass(cv::Mat image, cv::Mat atm, cv::Mat guided){
+cv::Mat UDCP::finalPass(cv::Mat &image, cv::Mat& atm, cv::Mat& guided){
   cv::Mat guided3;
   cv::Mat tmp[3];
   cv::Mat res;
@@ -100,8 +102,8 @@ cv::Mat UDCP::enhance(cv::Mat& image){
   image.convertTo(normImage, CV_64FC3, 1.0 / 255.0);
 
   darkCh = getDarkChannel(normImage);
-  atm = getAtmosphere(normImage, darkCh.clone());
-  process = transmissionEstimate(normImage, atm.clone());
+  atm = getAtmosphere(normImage, darkCh);
+  process = transmissionEstimate(normImage, atm);
   image.convertTo(bwImage, CV_32F);
   process.convertTo(process, CV_32F);
   cv::ximgproc::guidedFilter(bwImage, process, guided, r, eps);
