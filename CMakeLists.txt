@@ -21,10 +21,10 @@ add_compile_options(-Wall -Wextra -Wpedantic -O3)
 
 find_package(OpenCV REQUIRED)
 
-add_executable(main src/main.cpp)
+add_executable(enhancer src/main.cpp)
 
 target_link_libraries(
-  main
+  enhancer
   simpleEnhancer
   udcp
   ${OpenCV_LIBRARIES}
