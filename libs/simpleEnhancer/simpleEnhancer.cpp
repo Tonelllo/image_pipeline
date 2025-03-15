@@ -1,6 +1,6 @@
 /*
-* Copyright 2025
-*/
+ * Copyright 2025
+ */
 #include "simpleEnhancer.hpp"
 
 #include <opencv2/core/hal/interface.h>
@@ -58,7 +58,7 @@ cv::Mat SimpleEnhancer::compensateRedBlue(cv::Mat& image){
 cv::Mat SimpleEnhancer::greyWorldAlg(cv::Mat& image){
   cv::Mat channels[3];
   cv::Mat gray, out;
-  double  bMean, rMean, gMean, bnMean;
+  double bMean, rMean, gMean, bnMean;
 
   cv::cvtColor(image, gray, cv::COLOR_RGB2GRAY);
   cv::split(image, channels);
@@ -186,29 +186,29 @@ cv::Mat SimpleEnhancer::enhance(cv::Mat& image){
   cv::Mat contrasted;
   cv::Mat sharpened;
   process = compensateRedBlue(image);
-  if(mShowSteps_){
+  if(mShowSteps_) {
     cv::imshow("compensatedRB", process);
   }
   process = greyWorldAlg(process);
-  if(mShowSteps_){
+  if(mShowSteps_) {
     cv::imshow("greyWorld", process);
   }
   sharpened = sharpen(process);
-  if(mShowSteps_){
+  if(mShowSteps_) {
     cv::imshow("sharpen", sharpened);
   }
   contrasted = equalizeVal(process);
-  if(mShowSteps_){
+  if(mShowSteps_) {
     cv::imshow("equalized hist", contrasted);
   }
-  if(mFusionMode_ == fusionMode_::PCA){
+  if(mFusionMode_ == fusionMode_::PCA) {
     ret = pcaFusion(sharpened, contrasted);
-    if(mShowSteps_){
+    if(mShowSteps_) {
       cv::imshow("pca fused", ret);
     }
-  }else if(mFusionMode_ == fusionMode_::AVG){
+  }else if(mFusionMode_ == fusionMode_::AVG) {
     ret = avgFusion(sharpened, contrasted);
-    if(mShowSteps_){
+    if(mShowSteps_) {
       cv::imshow("avg fused", ret);
     }
   }else{

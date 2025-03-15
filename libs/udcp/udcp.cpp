@@ -1,6 +1,6 @@
 /*
-* copyright 2025
-*/
+ * copyright 2025
+ */
 #include <opencv2/core/hal/interface.h>
 
 #include <iostream>
@@ -44,7 +44,7 @@ cv::Mat UDCP::getAtmosphere(cv::Mat& orig, cv::Mat& image){
   cv::split(orig, channels);
 
   // Maybe thresholding
-  for(size_t i = 0; i < selectPixNum; i++){
+  for(size_t i = 0; i < selectPixNum; i++) {
     cv::minMaxLoc(image, nullptr, &dMax, nullptr, &dpMax);
     image.at<uchar>(dpMax) = 0;
 

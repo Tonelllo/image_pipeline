@@ -1,7 +1,7 @@
 #pragma once
 /*
-* copyright 2025
-*/
+ * copyright 2025
+ */
 #include <opencv2/core.hpp>
 
 class UDCP {
@@ -13,7 +13,7 @@ private:
   cv::Mat getAtmosphere(cv::Mat&, cv::Mat&);
   cv::Mat transmissionEstimate(cv::Mat&, cv::Mat&);
   cv::Mat finalPass(cv::Mat&, cv::Mat&, cv::Mat&);
-  enum channels{BLUE, GREEN, RED};
+  enum channels {BLUE, GREEN, RED};
   bool mShowImage_;
   uint mWindowSize_;
   double r;
