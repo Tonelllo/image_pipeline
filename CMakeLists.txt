@@ -11,7 +11,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # set(CMAKE_SHARED_LINKER_FLAGS -pg)
 
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
+  set(CMAKE_BUILD_TYPE Debug)
 endif()
 
 
@@ -20,6 +20,8 @@ add_subdirectory(libs)
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
 
@@ -34,6 +36,8 @@ target_link_libraries(
   rclcpp::rclcpp
   ${OpenCV_LIBRARIES}
   ${cv_bridge_TARGETS}
+  ${sensor_msgs_TARGETS}
+  ${std_srvs_TARGETS}
 )
 
 target_include_directories(enhancer PUBLIC
@@ -47,12 +51,15 @@ target_include_directories(enhancer PUBLIC
 # )
 
 install(TARGETS enhancer
-  EXPORT export_${PROJECT_NAME}
-  RUNTIME DESTINATION bin
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  INCLUDES DESTINATION include
-)
+  DESTINATION lib/${PROJECT_NAME})
+
+# install(TARGETS enhancer
+#   EXPORT export_${PROJECT_NAME}
+#   RUNTIME DESTINATION bin
+#   ARCHIVE DESTINATION lib
+#   LIBRARY DESTINATION lib
+#   INCLUDES DESTINATION include
+# )
 
 install(DIRECTORY
     include
@@ -64,6 +71,8 @@ ament_target_dependencies(
 
   OpenCV
   cv_bridge
+  sensor_msgs
+  std_srvs
 )
 
 if(BUILD_TESTING)
