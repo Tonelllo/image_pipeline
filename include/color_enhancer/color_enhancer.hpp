@@ -17,9 +17,9 @@
 #include <rclcpp/rclcpp.hpp>
 
 namespace underwaterEnhancer {
-class UnderwaterEnhancer : public rclcpp::Node {
+class ColorEnhancer : public rclcpp::Node {
 public:
-  UnderwaterEnhancer();
+  ColorEnhancer();
 
 private:
   cv_bridge::CvImagePtr mCvPtr_;
@@ -43,7 +43,7 @@ private:
   int mValMax_;
 
   static void trackbarCallback(int, void* obj){
-    UnderwaterEnhancer* mclass = static_cast<UnderwaterEnhancer*>(obj);
+    ColorEnhancer* mclass = static_cast<ColorEnhancer*>(obj);
     cv::Mat mask;
     cv::Mat process;
     cv::Mat segment;

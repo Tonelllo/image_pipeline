@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(underwater_images_enhancement)
+project(vision_pipeline)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CXX_STANDARD 20)
@@ -25,12 +25,14 @@ find_package(std_srvs REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
 
-add_executable(enhancer 
-src/enhancer.cpp
-src/underwater_enhancer.cpp)
+add_executable(color_enhancer 
+src/color_enhancer.cpp)
+
+add_executable(segmentation_calibrator 
+src/segmentation_calibrator.cpp)
 
 target_link_libraries(
-  enhancer
+  color_enhancer
   simpleEnhancer
   udcp
   rclcpp::rclcpp
@@ -40,34 +42,52 @@ target_link_libraries(
   ${std_srvs_TARGETS}
 )
 
-target_include_directories(enhancer PUBLIC
+target_link_libraries(
+  segmentation_calibrator
+  rclcpp::rclcpp
+  ${OpenCV_LIBRARIES}
+  ${cv_bridge_TARGETS}
+  ${sensor_msgs_TARGETS}
+)
+
+target_include_directories(color_enhancer PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
-# target_include_directories(
-#   enhancer
-#   PRIVATE
-#   include
-# )
+target_include_directories(segmentation_calibrator PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
 
-install(TARGETS enhancer
+install(TARGETS color_enhancer
   DESTINATION lib/${PROJECT_NAME})
-
-# install(TARGETS enhancer
-#   EXPORT export_${PROJECT_NAME}
-#   RUNTIME DESTINATION bin
-#   ARCHIVE DESTINATION lib
-#   LIBRARY DESTINATION lib
-#   INCLUDES DESTINATION include
-# )
+install(TARGETS segmentation_calibrator
+  DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY
     include
     DESTINATION share/${PROJECT_NAME}/
 )
 
+install(DIRECTORY
+    launch
+    DESTINATION share/${PROJECT_NAME}/
+)
+
+install(DIRECTORY
+    params
+    DESTINATION share/${PROJECT_NAME}/
+)
+
 ament_target_dependencies(
-  enhancer
+  color_enhancer
+
+  OpenCV
+  cv_bridge
+  sensor_msgs
+  std_srvs
+)
+ament_target_dependencies(
+  segmentation_calibrator
 
   OpenCV
   cv_bridge
