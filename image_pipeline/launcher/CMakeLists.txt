@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(launcher)
+project(image_pipeline_launcher)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CXX_STANDARD 20)

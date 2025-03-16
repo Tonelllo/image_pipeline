@@ -1,10 +1,10 @@
-enhancer:
+image_pipeline/enhancer:
   ros__parameters:
     in_topic: in
     out_topic: out
     algorithm: udcp # udcp se_avg se_pca
 
-pipe_detector:
+image_pipeline/pipe_detector:
   ros__parameters:
     in_topic: out
     out_topic: outout
@@ -15,7 +15,7 @@ pipe_detector:
     val_max: 0
     sat_max: 0
 
-buoy_detector:
+image_pipeline/buoy_detector:
   ros__parameters:
     in_topic: ininin
     out_topic: outoutout

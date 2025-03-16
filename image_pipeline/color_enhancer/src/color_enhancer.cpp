@@ -48,7 +48,7 @@ void ColorEnhancer::processImage(sensor_msgs::msg::Image::SharedPtr img){
   }
 }
 void ColorEnhancer::toggleSetup(const std_srvs::srv::Empty::Request::SharedPtr,
-                                     std_srvs::srv::Empty::Response::SharedPtr){
+                                std_srvs::srv::Empty::Response::SharedPtr){
   mSetup_ = !mSetup_;
   if (mSetup_) {
     cv::namedWindow("Segmentation Result");

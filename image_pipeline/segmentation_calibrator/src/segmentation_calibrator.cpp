@@ -4,7 +4,8 @@
 #include <segmentation_calibrator/segmentation_calibrator.hpp>
 
 namespace underwaterEnhancer {
-SegmentationCalibrator::SegmentationCalibrator() : Node("segmentation_calibrator"){
+SegmentationCalibrator::SegmentationCalibrator() :
+  Node("segmentation_calibrator", "/image_pipeline"){
   mResPub_ = create_publisher<sensor_msgs::msg::Image>("/segmentation_calibrator/out", 10);
   mInSub_ = create_subscription<sensor_msgs::msg::Image>
               ("/image_enhancer/in", 10,

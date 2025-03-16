@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(color_enhancer)
+project(image_pipeline_color_enhancer)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CXX_STANDARD 20)

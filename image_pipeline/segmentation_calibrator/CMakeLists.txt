@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(segmentation_calibrator)
+project(image_pipeline_segmentation_calibrator)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CXX_STANDARD 20)

@@ -7,19 +7,21 @@ import os
 
 
 def generate_launch_description():
-    assignment_path = FindPackageShare(
-        package="vision_pipeline").find("vision_pipeline")
-    params_path = os.path.join(assignment_path, "params", "config.yaml")
+    launcher_path = FindPackageShare(
+        package="launcher").find("launcher")
+    params_path = os.path.join(launcher_path, "params", "config.yaml")
 
-    image_enhancer = Node(
-        package='vision_pipeline',
-        executable='enhancer',
-        name='image_enhancer',
+    color_enhancer = Node(
+        package='color_enhancer',
+        executable='color_enhancer',
+        name='color_enhancer',
         parameters=[LaunchConfiguration('param_file')]
     )
 
     return LaunchDescription([
         DeclareLaunchArgument(
-            'param_file', default_value=params_path, description='Path to parameter file'),
-        image_enhancer
+            'param_file',
+            default_value=params_path,
+            description='Path to parameter file'),
+        color_enhancer
     ])
