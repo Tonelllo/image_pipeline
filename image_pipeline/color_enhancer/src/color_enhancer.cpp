@@ -8,9 +8,17 @@
 
 namespace underwaterEnhancer {
 ColorEnhancer::ColorEnhancer() : Node("color_enhancer", "/image_pipeline"), mUdcp_(false, 25){
-  mResPub_ = create_publisher<sensor_msgs::msg::Image>("out", 10);
+  declare_parameter("in_topic", "UNSET");
+  declare_parameter("out_topic", "UNSET");
+  declare_parameter("algorithm", "UNSET");
+
+  mInTopic_ = get_parameter("in_topic").as_string();
+  mOutTopic_ = get_parameter("in_topic").as_string();
+  mAlgoritm_ = get_parameter("algorithm").as_string();
+
+  mResPub_ = create_publisher<sensor_msgs::msg::Image>(mOutTopic_, 10);
   mInSub_ = create_subscription<sensor_msgs::msg::Image>
-              ("in", 10, std::bind(&ColorEnhancer::processImage, this, std::placeholders::_1));
+              (mInTopic_, 10, std::bind(&ColorEnhancer::processImage, this, std::placeholders::_1));
   mSetupSrv_ =
     create_service<std_srvs::srv::Empty>("toggle",
                                          std::bind(&ColorEnhancer::toggleSetup, this,

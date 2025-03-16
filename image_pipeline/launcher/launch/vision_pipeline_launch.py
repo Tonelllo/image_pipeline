@@ -12,7 +12,7 @@ def generate_launch_description():
     params_path = os.path.join(launcher_path, "params", "config.yaml")
 
     color_enhancer = Node(
-        package='color_enhancer',
+        package='image_pipeline_color_enhancer',
         executable='color_enhancer',
         name='color_enhancer',
         parameters=[LaunchConfiguration('param_file')]

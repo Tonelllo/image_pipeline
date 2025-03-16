@@ -1,7 +1,7 @@
-image_pipeline/enhancer:
+image_pipeline/color_enhancer:
   ros__parameters:
-    in_topic: in
-    out_topic: out
+    in_topic: color_enhancer/in
+    out_topic: color_enhancer/result
     algorithm: udcp # udcp se_avg se_pca
 
 image_pipeline/pipe_detector:
@@ -22,3 +22,7 @@ image_pipeline/buoy_detector:
     red_buoy: [0, 0, 0, 0, 0, 0] # The order is [hue_min, sat_min, val_min, hue_max, val_max, sat_max]
     blue_buoy: [0, 0, 0, 0, 0, 0]
     yellow_buoy: [0, 0, 0, 0, 0, 0]
+
+image_pipeline/segmentation_calibrator:
+  ros__parameters:
+    in_topic: color_enhancer/result

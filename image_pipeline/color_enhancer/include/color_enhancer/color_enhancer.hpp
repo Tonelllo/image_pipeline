@@ -5,6 +5,7 @@
 #include <cv_bridge/cv_bridge.h>
 
 #include <vector>
+#include <string>
 
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
@@ -22,6 +23,9 @@ public:
   ColorEnhancer();
 
 private:
+  std::string mInTopic_;
+  std::string mOutTopic_;
+  std::string mAlgoritm_;
   cv_bridge::CvImagePtr mCvPtr_;
   cv::Mat mCurrentFrame_;
   rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr mResPub_;
