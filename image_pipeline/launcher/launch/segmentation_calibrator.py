@@ -12,10 +12,10 @@ def generate_launch_description():
     print(launcher_path)
     params_path = os.path.join(launcher_path, "params", "config.yaml")
 
-    color_enhancer = Node(
-        package='image_pipeline_color_enhancer',
-        executable='color_enhancer',
-        name='color_enhancer',
+    segmentation_calibrator = Node(
+        package='image_pipeline_segmentation_calibrator',
+        executable='segmentation_calibrator',
+        name='segmentation_calibrator',
         parameters=[LaunchConfiguration('param_file')]
     )
 
@@ -24,5 +24,5 @@ def generate_launch_description():
             'param_file',
             default_value=params_path,
             description='Path to parameter file'),
-        color_enhancer
+        segmentation_calibrator
     ])

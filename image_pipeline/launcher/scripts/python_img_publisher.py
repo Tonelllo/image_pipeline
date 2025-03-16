@@ -16,12 +16,12 @@ def rotate_image(image, angle):
 
 class VideoPublisher(Node):
     def __init__(self):
-        super().__init__('video_publisher')
+        super().__init__('video_publisher', namespace='image_pipeline')
 
-        self.publisher = self.create_publisher(Image, 'in', 10)
+        self.publisher = self.create_publisher(Image, 'fake_video', 10)
 
         self.img = cv2.imread(
-            '/home/tonelllo/ros2_ws/src/BetterUnderwater/media/test/pipe.png')
+            '/home/tonelllo/ros2_ws/src/image_pipeline/media/test/pipe.png')
 
         # Create CvBridge to convert OpenCV images to ROS2 Image messages
         self.bridge = CvBridge()

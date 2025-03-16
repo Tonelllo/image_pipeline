@@ -7,32 +7,23 @@
 #include <color_enhancer/color_enhancer.hpp>
 
 namespace underwaterEnhancer {
-ColorEnhancer::ColorEnhancer() : Node("color_enhancer", "/image_pipeline"), mUdcp_(false, 25){
+ColorEnhancer::ColorEnhancer() : Node("color_enhancer", "/image_pipeline"){
   declare_parameter("in_topic", "UNSET");
   declare_parameter("out_topic", "UNSET");
   declare_parameter("algorithm", "UNSET");
 
   mInTopic_ = get_parameter("in_topic").as_string();
-  mOutTopic_ = get_parameter("in_topic").as_string();
+  mOutTopic_ = get_parameter("out_topic").as_string();
   mAlgoritm_ = get_parameter("algorithm").as_string();
+
+  mUdcp_ = std::make_unique<UDCP>(false, 25);
+  mSeAvg_ = std::make_unique<SimpleEnhancer>(false, SimpleEnhancer::fusionMode_::AVG);
+  mSePca_ = std::make_unique<SimpleEnhancer>(false, SimpleEnhancer::fusionMode_::PCA);
 
   mResPub_ = create_publisher<sensor_msgs::msg::Image>(mOutTopic_, 10);
   mInSub_ = create_subscription<sensor_msgs::msg::Image>
               (mInTopic_, 10, std::bind(&ColorEnhancer::processImage, this, std::placeholders::_1));
-  mSetupSrv_ =
-    create_service<std_srvs::srv::Empty>("toggle",
-                                         std::bind(&ColorEnhancer::toggleSetup, this,
-                                                   std::placeholders::_1, std::placeholders::_2));
-  mSetup_ = false;
-  mHueMin_ = 0;
-  mSatMin_ = 0;
-  mValMin_ = 0;
-  mHueMax_ = 179;
-  mSatMax_ = 255;
-  mValMax_ = 255;
 }
-
-void ColorEnhancer::setupParameters(){}
 
 void ColorEnhancer::processImage(sensor_msgs::msg::Image::SharedPtr img){
   try {
@@ -44,37 +35,17 @@ void ColorEnhancer::processImage(sensor_msgs::msg::Image::SharedPtr img){
 
   // Converting the image in black and white to have better detection of the arucos
   mCurrentFrame_ = mCvPtr_->image;
-  mEnhanced_ = mUdcp_.enhance(mCurrentFrame_);
+  if (mAlgoritm_ == "udcp") {
+    mEnhanced_ = mUdcp_->enhance(mCurrentFrame_);
+  } else if (mAlgoritm_ == "se_avg") {
+    mEnhanced_ = mSeAvg_->enhance(mCurrentFrame_);
+  } else if (mAlgoritm_ == "se_pca") {
+    mEnhanced_ = mSeAvg_->enhance(mCurrentFrame_);
+  }
   cv::Mat tmp;
   mCvPtr_->image = mEnhanced_;
   cv::waitKey(10);
   mResPub_->publish(*mCvPtr_->toImageMsg());
-
-  if (mSetup_) {
-    trackbarCallback(0, this);
-    setupParameters();
-  }
-}
-void ColorEnhancer::toggleSetup(const std_srvs::srv::Empty::Request::SharedPtr,
-                                std_srvs::srv::Empty::Response::SharedPtr){
-  mSetup_ = !mSetup_;
-  if (mSetup_) {
-    cv::namedWindow("Segmentation Result");
-    cv::createTrackbar("Hue min", "Segmentation Result",
-                       &mHueMin_, 179, &ColorEnhancer::trackbarCallback, this);
-    cv::createTrackbar("Sat min", "Segmentation Result",
-                       &mValMin_, 255, &ColorEnhancer::trackbarCallback, this);
-    cv::createTrackbar("Val min", "Segmentation Result",
-                       &mSatMin_, 255, &ColorEnhancer::trackbarCallback, this);
-    cv::createTrackbar("Hue max", "Segmentation Result",
-                       &mHueMax_, 179, &ColorEnhancer::trackbarCallback, this);
-    cv::createTrackbar("Sat max", "Segmentation Result",
-                       &mValMax_, 255, &ColorEnhancer::trackbarCallback, this);
-    cv::createTrackbar("Val max", "Segmentation Result",
-                       &mSatMax_, 255, &ColorEnhancer::trackbarCallback, this);
-  } else {
-    cv::destroyAllWindows();
-  }
 }
 }  // namespace underwaterEnhancer
 

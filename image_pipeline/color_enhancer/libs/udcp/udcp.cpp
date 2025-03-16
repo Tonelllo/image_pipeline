@@ -3,9 +3,6 @@
  */
 #include <opencv2/core/hal/interface.h>
 
-#include <iostream>
-#include <vector>
-
 #include <opencv2/core.hpp>
 #include <opencv2/ximgproc.hpp>
 #include <opencv2/core/types.hpp>

@@ -1,6 +1,6 @@
 image_pipeline/color_enhancer:
   ros__parameters:
-    in_topic: color_enhancer/in
+    in_topic: fake_video
     out_topic: color_enhancer/result
     algorithm: udcp # udcp se_avg se_pca
 
