@@ -2,33 +2,59 @@ image_pipeline/color_enhancer:
   ros__parameters:
     in_topic: fake_video
     out_topic: color_enhancer/result
-    algorithm: udcp # udcp se_avg se_pca
-
+    algorithm: udcp
 image_pipeline/segmentation_calibrator:
   ros__parameters:
     in_topic: color_enhancer/result
-
 image_pipeline/pipe_detector:
   ros__parameters:
     in_topic: out
     out_topic: outout
-    hue_min: 0
-    sat_min: 0
-    val_min: 0
-    hue_max: 0
-    val_max: 0
-    sat_max: 0
-
+    hue_min: 59
+    sat_min: 71
+    val_min: 56
+    hue_max: 255
+    val_max: 255
+    sat_max: 255
 image_pipeline/buoy_detector:
   ros__parameters:
     in_topic: ininin
     out_topic: outoutout
-    red_buoy: [0, 0, 0, 0, 0, 0] # The order is [hue_min, sat_min, val_min, hue_max, val_max, sat_max]
-    white_buoy: [0, 0, 0, 0, 0, 0]
-    yellow_buoy: [0, 0, 0, 0, 0, 0]
-    black_buoy: [0, 0, 0, 0, 0, 0]
-    orange_buoy: [0, 0, 0, 0, 0, 0]
-
+    red_buoy:
+      - 0
+      - 0
+      - 0
+      - 255
+      - 255
+      - 255
+    white_buoy:
+      - 37
+      - 76
+      - 44
+      - 226
+      - 255
+      - 255
+    yellow_buoy:
+      - 37
+      - 0
+      - 44
+      - 255
+      - 255
+      - 255
+    black_buoy:
+      - 37
+      - 0
+      - 0
+      - 255
+      - 255
+      - 255
+    orange_buoy:
+      - 37
+      - 76
+      - 44
+      - 255
+      - 255
+      - 255
 image_pipeline/number_detector:
   ros__parameters:
     in_topic: inininin
