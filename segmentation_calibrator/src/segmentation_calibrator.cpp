@@ -1,6 +1,8 @@
 /*
  * Copyright(2025)
  */
+#include <array>
+#include <opencv2/highgui.hpp>
 #include <segmentation_calibrator/segmentation_calibrator.hpp>
 
 namespace underwaterEnhancer {
@@ -20,6 +22,12 @@ SegmentationCalibrator::SegmentationCalibrator() :
   mSatMax_ = 255;
   mValMax_ = 255;
 
+  mSavePrompt_ = false;
+  mPkgShare_ = std::filesystem::path(
+    ament_index_cpp::get_package_share_directory("image_pipeline_launcher"))
+               / "params" / "config.yaml";
+  mConfig_ = YAML::LoadFile(mPkgShare_);
+  mWriter_ = std::make_unique<std::ofstream>(mPkgShare_);
 
   cv::namedWindow("Segmentation Result");
   cv::createTrackbar("Hue min", "Segmentation Result",
@@ -34,10 +42,13 @@ SegmentationCalibrator::SegmentationCalibrator() :
                      &mValMax_, 255, &SegmentationCalibrator::setup, this);
   cv::createTrackbar("Val max", "Segmentation Result",
                      &mSatMax_, 255, &SegmentationCalibrator::setup, this);
+  cv::createTrackbar("Calibrating for", "Segmentation Result",
+                     &mOption_, 6, &SegmentationCalibrator::setup, this);
 }
 
 SegmentationCalibrator::~SegmentationCalibrator(){
   cv::destroyAllWindows();
+  mWriter_->close();
 }
 
 void SegmentationCalibrator::getFrame(sensor_msgs::msg::Image::SharedPtr img){
@@ -49,6 +60,35 @@ void SegmentationCalibrator::getFrame(sensor_msgs::msg::Image::SharedPtr img){
   }
   mCurrentFrame_ = mCvPtr_->image;
   setup(0, this);
+}
+
+void SegmentationCalibrator::saveParams(){
+  std::array<int, 6> vals = {mHueMin_, mSatMin_, mValMin_, mHueMax_, mValMax_, mSatMax_};
+  switch (mOption_) {
+  case 0:
+    // "red buoy"
+    mConfig_["image_pipeline/buoy_detector"]["ros_parameters"]["red_buoy"] = vals;
+    break;
+  case 1:
+    // "black buoy"
+    break;
+  case 2:
+    // "yellow buoy"
+    break;
+  case 3:
+    // "orange buoy"
+    break;
+  case 4:
+    // "white buoy"
+    break;
+  case 5:
+    // "pipes"
+    break;
+  case 6:
+    // "number"
+    break;
+  }
+  *mWriter_ << mConfig_;
 }
 }  // namespace underwaterEnhancer
 
