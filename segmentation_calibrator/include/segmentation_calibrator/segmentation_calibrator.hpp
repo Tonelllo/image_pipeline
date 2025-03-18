@@ -64,29 +64,6 @@ private:
     cv::bitwise_and(mclass->mCurrentFrame_, mclass->mCurrentFrame_, segment, mask);
 
 
-    cv::findContours(mask, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
-    std::vector<cv::RotatedRect> minEllipse( contours.size());
-    for (size_t i = 0; i < contours.size(); i++) {
-      if (contours[i].size() > 5) {
-        minEllipse[i] = cv::fitEllipse(contours[i]);
-      }
-    }
-    cv::Scalar color = cv::Scalar( 200, 200, 200);
-    for (size_t i = 0; i< contours.size(); i++) {
-      cv::ellipse(segment, minEllipse[i], color, 2);
-      cv::Point2f center = minEllipse[i].center;
-      cv::Size2f axes = minEllipse[i].size;
-      float angle = minEllipse[i].angle;
-
-      // Calculate the two extreme points on the ellipse's major axis
-      cv::Point2f point1(center.x - axes.height / 2 * sin(angle * CV_PI / 180.0),
-                         center.y - axes.height / 2 * -cos(angle * CV_PI / 180.0));
-      cv::Point2f point2(center.x + axes.height / 2 * sin(angle * CV_PI / 180.0),
-                         center.y + axes.height / 2 * -cos(angle * CV_PI / 180.0));
-
-      // Draw the longest line (major axis) of the ellipse
-      cv::line(segment, point1, point2, cv::Scalar(0, 0, 255), 2);
-    }
     std::string selection;
     switch (mclass->mOption_) {
     case 0:

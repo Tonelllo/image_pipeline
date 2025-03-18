@@ -16,6 +16,23 @@ def generate_launch_description():
         package='image_pipeline_color_enhancer',
         executable='color_enhancer',
         name='color_enhancer',
+        output='screen',
+        parameters=[LaunchConfiguration('param_file')]
+    )
+
+    pipe_detector = Node(
+        package='image_pipeline_pipe_detector',
+        executable='pipe_detector',
+        name='pipe_detector',
+        output='screen',
+        parameters=[LaunchConfiguration('param_file')]
+    )
+
+    buoy_detector = Node(
+        package='image_pipeline_buoy_detector',
+        executable='buoy_detector',
+        name='buoy_detector',
+        output='screen',
         parameters=[LaunchConfiguration('param_file')]
     )
 
@@ -24,5 +41,7 @@ def generate_launch_description():
             'param_file',
             default_value=params_path,
             description='Path to parameter file'),
-        color_enhancer
+        color_enhancer,
+        pipe_detector,
+        buoy_detector
     ])

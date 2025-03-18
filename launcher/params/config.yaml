@@ -8,8 +8,8 @@ image_pipeline/segmentation_calibrator:
     in_topic: color_enhancer/result
 image_pipeline/pipe_detector:
   ros__parameters:
-    in_topic: out
-    out_topic: outout
+    in_topic: color_enhancer/result
+    out_topic: pipe_direction
     hue_min: 59
     sat_min: 71
     val_min: 56
