@@ -6,7 +6,7 @@
 #include <segmentation_calibrator/segmentation_calibrator.hpp>
 
 namespace underwaterEnhancer {
-SegmentationCalibrator::SegmentationCalibrator() :
+SegmentationCalibrator::SegmentationCalibrator():
   Node("segmentation_calibrator", "/image_pipeline"){
   declare_parameter("in_topic", "UNSET");
 
