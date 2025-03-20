@@ -8,18 +8,19 @@ BuoyDetector::BuoyDetector():
   Node("pipe_detector", "/image_pipeline"){
   declare_parameter("in_topic", "UNSET");
   declare_parameter("out_topic", "UNSET");
-  declare_parameter("red_buoy", {});
-  declare_parameter("white_buoy", {});
-  declare_parameter("yellow_buoy", {});
-  declare_parameter("black_buoy", {});
-  declare_parameter("orange_buoy", {});
+  declare_parameter("red_buoy", std::vector<int64_t>());
+  declare_parameter("white_buoy", std::vector<int64_t>());
+  declare_parameter("yellow_buoy", std::vector<int64_t>());
+  declare_parameter("black_buoy", std::vector<int64_t>());
+  declare_parameter("orange_buoy", std::vector<int64_t>());
 
   mInTopic_ = get_parameter("in_topic").as_string();
   mOutTopic_ = get_parameter("out_topic").as_string();
   mRedBuoy_ = get_parameter("red_buoy").as_integer_array();
   mWhiteBuoy_ = get_parameter("white_buoy").as_integer_array();
-  mBlackBuoy_ = get_parameter("yellow_buoy").as_integer_array();
+  mBlackBuoy_ = get_parameter("black_buoy").as_integer_array();
   mOrangeBuoy_ = get_parameter("orange_buoy").as_integer_array();
+  mYellowBuoy_ = get_parameter("yellow_buoy").as_integer_array();
 
   mInSub_ = create_subscription<sensor_msgs::msg::Image>
               (mInTopic_, 10,

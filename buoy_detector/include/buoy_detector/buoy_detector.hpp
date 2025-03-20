@@ -21,6 +21,7 @@ private:
   std::vector<int64_t> mWhiteBuoy_;
   std::vector<int64_t> mBlackBuoy_;
   std::vector<int64_t> mOrangeBuoy_;
+  std::vector<int64_t> mYellowBuoy_;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr mInSub_;
   cv_bridge::CvImagePtr mCvPtr_;
   cv::Mat mCurrentFrame_;

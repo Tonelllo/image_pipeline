@@ -21,9 +21,9 @@ image_pipeline/buoy_detector:
     in_topic: ininin
     out_topic: outoutout
     red_buoy:
-      - 0
-      - 0
-      - 0
+      - 60
+      - 61
+      - 58
       - 255
       - 255
       - 255

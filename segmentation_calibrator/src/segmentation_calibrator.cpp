@@ -28,7 +28,6 @@ SegmentationCalibrator::SegmentationCalibrator():
                "../../../../src/image_pipeline/launcher"
                / "params" / "config.yaml";
   mConfig_ = YAML::LoadFile(mPkgShare_);
-  mWriter_ = std::make_unique<std::ofstream>(mPkgShare_);
 
   cv::namedWindow("Segmentation Result");
   cv::createTrackbar("Hue min", "Segmentation Result",
@@ -49,7 +48,6 @@ SegmentationCalibrator::SegmentationCalibrator():
 
 SegmentationCalibrator::~SegmentationCalibrator(){
   cv::destroyAllWindows();
-  mWriter_->close();
 }
 
 void SegmentationCalibrator::getFrame(sensor_msgs::msg::Image::SharedPtr img){
@@ -64,9 +62,7 @@ void SegmentationCalibrator::getFrame(sensor_msgs::msg::Image::SharedPtr img){
 }
 
 void SegmentationCalibrator::saveParams(){
-  if (!mWriter_->is_open()) {
-    mWriter_->open(mPkgShare_);
-  }
+  std::ofstream writer(mPkgShare_);
   std::array<int, 6> vals = {mHueMin_, mSatMin_, mValMin_, mHueMax_, mValMax_, mSatMax_};
   if (mOption_ <= 4) {
     std::string buoyType;
@@ -109,8 +105,8 @@ void SegmentationCalibrator::saveParams(){
       break;
     }
   }
-  *mWriter_ << mConfig_;
-  mWriter_->close();
+  writer << mConfig_;
+  writer.close();
 }
 }  // namespace underwaterEnhancer
 
