@@ -22,6 +22,8 @@ class VideoPublisher(Node):
 
         self.img = cv2.imread(
             '/home/tonelllo/ros2_ws/src/image_pipeline/media/test/pipe.png')
+        # self.img = cv2.imread(
+        #     '/home/tonelllo/ros2_ws/src/image_pipeline/media/red_buoy.png')
 
         # Create CvBridge to convert OpenCV images to ROS2 Image messages
         self.bridge = CvBridge()

@@ -30,7 +30,6 @@ public:
 private:
   YAML::Node mConfig_;
   std::string mPkgShare_;
-  std::unique_ptr<std::ofstream> mWriter_;
   int mOption_;
   cv_bridge::CvImagePtr mCvPtr_;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr mInSub_;
