@@ -45,7 +45,7 @@ void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img){
   cv::Mat process;
   cv::Mat segment;
   std::vector<std::vector<cv::Point>> contours;
-  mCurrentFrame_.convertTo(process, CV_BGR2HSV);
+  cv::cvtColor(mCurrentFrame_, process, CV_BGR2HSV);
   if (process.empty()) {
     return;
   }

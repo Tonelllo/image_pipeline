@@ -2,6 +2,9 @@
  * Copyright(2025)
  */
 #include "buoy_detector/buoy_detector.hpp"
+#include <algorithm>
+#include <opencv2/core/cvdef.h>
+#include <opencv2/features2d.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
@@ -24,10 +27,30 @@ BuoyDetector::BuoyDetector() :
   mOrangeBuoy_ = get_parameter("orange_buoy").as_integer_array();
   mYellowBuoy_ = get_parameter("yellow_buoy").as_integer_array();
 
-  std::cout << mInTopic_ << std::endl;
   mInSub_ = create_subscription<sensor_msgs::msg::Image>
               (mInTopic_, 10,
               std::bind(&BuoyDetector::getFrame, this, std::placeholders::_1));
+
+  mBuoysPub_ = create_publisher<image_pipeline_msgs::msg::BuoyPositionArray>("outbuoys", 10);
+
+  mBuoysParams_.push_back(mRedBuoy_);
+  mBuoysParams_.push_back(mWhiteBuoy_);
+  mBuoysParams_.push_back(mBlackBuoy_);
+  mBuoysParams_.push_back(mOrangeBuoy_);
+  mBuoysParams_.push_back(mYellowBuoy_);
+
+  mBuoysNames_ = {"RED", "WHITE", "BLACK", "ORANGE", "YELLOW"};
+
+  cv::SimpleBlobDetector::Params params;
+  params.filterByColor = true;
+  params.blobColor = 255;
+  params.filterByArea = true;
+  params.minArea = CV_PI * 10 * 10;
+  params.maxArea = CV_PI * 500 * 500;
+  params.filterByCircularity = false;
+  params.filterByConvexity = false;
+  params.filterByInertia = false;
+  mSbd_ = cv::SimpleBlobDetector::create(params);
 }
 
 void BuoyDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img){
@@ -38,31 +61,71 @@ void BuoyDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img){
     return;
   }
   cv::Mat mask;
+  cv::Mat kernel;
   cv::Mat segment;
+  cv::Mat process;
+  cv::Mat out;
+  image_pipeline_msgs::msg::BuoyPositionArray ret;
+  int dilationSize = 15;
+  kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE,
+                                     cv::Size(2 * dilationSize + 1, 2 * dilationSize + 1),
+                                     cv:: Point(dilationSize, dilationSize));
   mCurrentFrame_ = mCvPtr_->image;
-  cv::inRange(mCurrentFrame_,
-              cv::Scalar(mRedBuoy_[0], mRedBuoy_[1], mRedBuoy_[2]),
-              cv::Scalar(mRedBuoy_[3], mRedBuoy_[4], mRedBuoy_[5]),
-              mask);
-  cv::bitwise_and(mCurrentFrame_, mCurrentFrame_, segment, mask);
-  cv::medianBlur(mask, mask, 5);
-  std::vector<cv::Vec3f> circles;
-  HoughCircles(mask, circles, cv::HOUGH_GRADIENT, 1,
-               mask.rows/16,
-               100, 30, 1, 1000
-               // (min_radius & max_radius) to detect larger circles
-               );
-  for (size_t i = 0; i < circles.size(); i++)
-  {
-    cv::Vec3i c = circles[i];
-    cv::Point center = cv::Point(c[0], c[1]);
-    // circle center
-    cv::circle( mCurrentFrame_, center, 1, cv::Scalar(0, 100, 100), 3, cv::LINE_AA);
-    // circle outline
-    int radius = c[2];
-    cv::circle( mCurrentFrame_, center, radius, cv::Scalar(255, 0, 255), 3, cv::LINE_AA);
+  out = mCurrentFrame_;
+  for (size_t index = 0; index < mBuoysNames_.size(); index++) {
+    image_pipeline_msgs::msg::BuoyPosition bp;
+    cv::cvtColor(mCurrentFrame_, process, CV_BGR2HSV);
+    cv::inRange(process,
+                cv::Scalar(mBuoysParams_[index][0],
+                           mBuoysParams_[index][1],
+                           mBuoysParams_[index][2]),
+                cv::Scalar(mBuoysParams_[index][3],
+                           mBuoysParams_[index][4],
+                           mBuoysParams_[index][5]),
+                mask);
+    cv::bitwise_and(process, process, segment, mask);
+    cv::medianBlur(mask, mask, 15);
+    cv::dilate(mask, mask, kernel);
+    /*cv::imshow("segmented", mask);*/
+    std::vector<cv::KeyPoint> keypoints;
+    mSbd_->detect(mask, keypoints);
+    auto biggestBlob = std::ranges::max_element(keypoints,
+                                                [](const cv::KeyPoint k1, const cv::KeyPoint k2){
+      return k1.size < k2.size;
+    });
+    if (biggestBlob == keypoints.end()) {
+      continue;
+    }
+    /*cv::drawKeypoints(out,*/
+    /*                  keypoints,*/
+    /*                  out,*/
+    /*                  cv::Scalar(0, 0, 0), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);*/
+    /*cv::circle(out, biggestBlob->pt, 3, cv::Scalar(200, 200, 200), 10);*/
+    /*cv::putText(out, mBuoysNames_[index], biggestBlob->pt,*/
+    /*            cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(100, 100, 100), 5);*/
+    bp.position.x = biggestBlob->pt.x;
+    bp.position.y = biggestBlob->pt.y;
+    switch (index) {
+    case 0:
+      bp.color = image_pipeline_msgs::msg::BuoyPosition::RED;
+      break;
+    case 1:
+      bp.color = image_pipeline_msgs::msg::BuoyPosition::WHITE;
+      break;
+    case 2:
+      bp.color = image_pipeline_msgs::msg::BuoyPosition::BLACK;
+      break;
+    case 3:
+      bp.color = image_pipeline_msgs::msg::BuoyPosition::ORANGE;
+      break;
+    case 4:
+      bp.color = image_pipeline_msgs::msg::BuoyPosition::YELLOW;
+      break;
+    }
+    ret.buoys.push_back(bp);
   }
-  cv::imshow("buoy", mCurrentFrame_);
+  mBuoysPub_->publish(ret);
+  /*cv::imshow("buoy", out);*/
   cv::waitKey(100);
 }
 }  // namespace underwaterEnhancer

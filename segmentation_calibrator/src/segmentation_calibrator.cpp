@@ -21,6 +21,7 @@ SegmentationCalibrator::SegmentationCalibrator():
   mHueMax_ = 255;
   mSatMax_ = 255;
   mValMax_ = 255;
+  mOption_ = 0;
 
   mSavePrompt_ = false;
   mPkgShare_ = std::filesystem::path(
@@ -33,15 +34,15 @@ SegmentationCalibrator::SegmentationCalibrator():
   cv::createTrackbar("Hue min", "Segmentation Result",
                      &mHueMin_, 255, &SegmentationCalibrator::setup, this);
   cv::createTrackbar("Sat min", "Segmentation Result",
-                     &mValMin_, 255, &SegmentationCalibrator::setup, this);
-  cv::createTrackbar("Val min", "Segmentation Result",
                      &mSatMin_, 255, &SegmentationCalibrator::setup, this);
+  cv::createTrackbar("Val min", "Segmentation Result",
+                     &mValMin_, 255, &SegmentationCalibrator::setup, this);
   cv::createTrackbar("Hue max", "Segmentation Result",
                      &mHueMax_, 255, &SegmentationCalibrator::setup, this);
   cv::createTrackbar("Sat max", "Segmentation Result",
-                     &mValMax_, 255, &SegmentationCalibrator::setup, this);
-  cv::createTrackbar("Val max", "Segmentation Result",
                      &mSatMax_, 255, &SegmentationCalibrator::setup, this);
+  cv::createTrackbar("Val max", "Segmentation Result",
+                     &mValMax_, 255, &SegmentationCalibrator::setup, this);
   cv::createTrackbar("Calibrating for", "Segmentation Result",
                      &mOption_, 6, &SegmentationCalibrator::setup, this);
 }
@@ -63,7 +64,7 @@ void SegmentationCalibrator::getFrame(sensor_msgs::msg::Image::SharedPtr img){
 
 void SegmentationCalibrator::saveParams(){
   std::ofstream writer(mPkgShare_);
-  std::array<int, 6> vals = {mHueMin_, mSatMin_, mValMin_, mHueMax_, mValMax_, mSatMax_};
+  std::array<int, 6> vals = {mHueMin_, mSatMin_, mValMin_, mHueMax_, mSatMax_, mValMax_};
   if (mOption_ <= 4) {
     std::string buoyType;
     switch (mOption_) {

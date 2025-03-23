@@ -10,9 +10,9 @@ image_pipeline/pipe_detector:
   ros__parameters:
     in_topic: color_enhancer/result
     out_topic: pipe_direction
-    hue_min: 59
-    sat_min: 71
-    val_min: 56
+    hue_min: 0
+    sat_min: 0
+    val_min: 172
     hue_max: 255
     val_max: 255
     sat_max: 255
@@ -21,40 +21,40 @@ image_pipeline/buoy_detector:
     in_topic: color_enhancer/result
     out_topic: buoy_detector/out
     red_buoy:
-      - 0
-      - 0
-      - 40
-      - 193
+      - 137
+      - 125
+      - 39
+      - 196
       - 255
-      - 166
+      - 253
     white_buoy:
-      - 37
-      - 76
-      - 44
-      - 226
-      - 255
+      - 0
+      - 0
+      - 139
+      - 166
+      - 50
       - 255
     yellow_buoy:
-      - 37
-      - 0
-      - 44
-      - 255
+      - 9
+      - 126
+      - 104
+      - 39
       - 255
       - 255
     black_buoy:
+      - 13
+      - 0
+      - 0
+      - 148
+      - 53
       - 37
-      - 0
-      - 0
-      - 255
-      - 255
-      - 255
     orange_buoy:
-      - 37
-      - 76
-      - 44
+      - 18
+      - 67
+      - 101
+      - 55
       - 255
-      - 255
-      - 255
+      - 215
 image_pipeline/number_detector:
   ros__parameters:
     in_topic: inininin

@@ -4,6 +4,7 @@
 #include <opencv2/core/hal/interface.h>
 
 #include <opencv2/core.hpp>
+#include <opencv2/imgproc/types_c.h>
 #include <opencv2/ximgproc.hpp>
 #include <opencv2/core/types.hpp>
 #include <opencv2/highgui.hpp>
@@ -101,7 +102,7 @@ cv::Mat UDCP::enhance(cv::Mat& image){
   darkCh = getDarkChannel(normImage);
   atm = getAtmosphere(normImage, darkCh);
   process = transmissionEstimate(normImage, atm);
-  image.convertTo(bwImage, CV_32F);
+  cv::cvtColor(image, bwImage, CV_BGR2GRAY);
   process.convertTo(process, CV_32F);
   cv::ximgproc::guidedFilter(bwImage, process, guided, r, eps);
   process = finalPass(normImage, atm, guided);
