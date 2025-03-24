@@ -11,14 +11,16 @@
 #include <opencv2/imgproc.hpp>
 #include <udcp/udcp.hpp>
 
-UDCP::UDCP(bool showImage, uint windowSize){
+UDCP::UDCP(bool showImage, uint windowSize)
+{
   mShowImage_ = showImage;
   mWindowSize_ = windowSize;
   r = 60;
   eps = 0.0001;
 }
 
-cv::Mat UDCP::getDarkChannel(cv::Mat& image){
+cv::Mat UDCP::getDarkChannel(cv::Mat & image)
+{
   cv::Mat channels[3];
   cv::Mat dc, kernel, dark;
   cv::split(image, channels);
@@ -28,7 +30,8 @@ cv::Mat UDCP::getDarkChannel(cv::Mat& image){
   return dark;
 }
 
-cv::Mat UDCP::getAtmosphere(cv::Mat& orig, cv::Mat& image){
+cv::Mat UDCP::getAtmosphere(cv::Mat & orig, cv::Mat & image)
+{
   // TODO(tonello) parameterize
   uint selectPixNum = floor(image.rows * image.cols * 0.0001);
   double dMax;
@@ -42,7 +45,7 @@ cv::Mat UDCP::getAtmosphere(cv::Mat& orig, cv::Mat& image){
   cv::split(orig, channels);
 
   // Maybe thresholding
-  for(size_t i = 0; i < selectPixNum; i++) {
+  for (size_t i = 0; i < selectPixNum; i++) {
     cv::minMaxLoc(image, nullptr, &dMax, nullptr, &dpMax);
     image.at<uchar>(dpMax) = 0;
 
@@ -58,7 +61,8 @@ cv::Mat UDCP::getAtmosphere(cv::Mat& orig, cv::Mat& image){
   return cv::Mat(image.size(), CV_64FC3, cv::Scalar(bMean, gMean, rMean));
 }
 
-cv::Mat UDCP::transmissionEstimate(cv::Mat& image, cv::Mat& atm){
+cv::Mat UDCP::transmissionEstimate(cv::Mat & image, cv::Mat & atm)
+{
   cv::Mat res;
   cv::Mat dc;
 
@@ -71,7 +75,8 @@ cv::Mat UDCP::transmissionEstimate(cv::Mat& image, cv::Mat& atm){
   return dc;
 }
 
-cv::Mat UDCP::finalPass(cv::Mat &image, cv::Mat& atm, cv::Mat& guided){
+cv::Mat UDCP::finalPass(cv::Mat & image, cv::Mat & atm, cv::Mat & guided)
+{
   cv::Mat guided3;
   cv::Mat tmp[3];
   cv::Mat res;
@@ -90,7 +95,8 @@ cv::Mat UDCP::finalPass(cv::Mat &image, cv::Mat& atm, cv::Mat& guided){
   return res;
 }
 
-cv::Mat UDCP::enhance(cv::Mat& image){
+cv::Mat UDCP::enhance(cv::Mat & image)
+{
   cv::Mat process;
   cv::Mat darkCh;
   cv::Mat atm;

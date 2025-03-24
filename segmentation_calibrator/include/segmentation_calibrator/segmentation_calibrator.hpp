@@ -1,8 +1,18 @@
-#pragma once
-/*
- * Copyright(2025) UNIGE
- */
+// Copyright 2025 UNIGE
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
+#pragma once
 #include <yaml-cpp/yaml.h>
 #include <sys/types.h>
 #include <sys/ucontext.h>
@@ -22,8 +32,10 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
 
-namespace underwaterEnhancer {
-class SegmentationCalibrator : public rclcpp::Node {
+namespace underwaterEnhancer
+{
+class SegmentationCalibrator : public rclcpp::Node
+{
 public:
   SegmentationCalibrator();
   ~SegmentationCalibrator();
@@ -47,8 +59,9 @@ private:
 
   void getFrame(sensor_msgs::msg::Image::SharedPtr);
   void saveParams();
-  static void setup(int, void* obj){
-    SegmentationCalibrator* mclass = static_cast<SegmentationCalibrator*>(obj);
+  static void setup(int, void * obj)
+  {
+    SegmentationCalibrator * mclass = static_cast<SegmentationCalibrator *>(obj);
     cv::Mat mask;
     cv::Mat process;
     cv::Mat segment;
@@ -57,10 +70,11 @@ private:
       return;
     }
     cv::cvtColor(mclass->mCurrentFrame_, process, CV_BGR2HSV);
-    cv::inRange(process,
-                cv::Scalar(mclass->mHueMin_, mclass->mSatMin_, mclass->mValMin_),
-                cv::Scalar(mclass->mHueMax_, mclass->mSatMax_, mclass->mValMax_),
-                mask);
+    cv::inRange(
+      process,
+      cv::Scalar(mclass->mHueMin_, mclass->mSatMin_, mclass->mValMin_),
+      cv::Scalar(mclass->mHueMax_, mclass->mSatMax_, mclass->mValMax_),
+      mask);
     cv::bitwise_and(mclass->mCurrentFrame_, mclass->mCurrentFrame_, segment, mask);
 
     std::string selection;
@@ -69,27 +83,27 @@ private:
       restore = true;
     }
     switch (mclass->mOption_) {
-    case 0:
-      selection = "red_buoy";
-      break;
-    case 1:
-      selection = "black_buoy";
-      break;
-    case 2:
-      selection = "yellow_buoy";
-      break;
-    case 3:
-      selection = "orange_buoy";
-      break;
-    case 4:
-      selection = "white_buoy";
-      break;
-    case 5:
-      selection = "pipes";
-      break;
-    case 6:
-      selection = "number";
-      break;
+      case 0:
+        selection = "red_buoy";
+        break;
+      case 1:
+        selection = "black_buoy";
+        break;
+      case 2:
+        selection = "yellow_buoy";
+        break;
+      case 3:
+        selection = "orange_buoy";
+        break;
+      case 4:
+        selection = "white_buoy";
+        break;
+      case 5:
+        selection = "pipes";
+        break;
+      case 6:
+        selection = "number";
+        break;
     }
     if (mclass->mOption_ <= 4 && restore) {
       auto vec = mclass->mConfig_["image_pipeline/buoy_detector"]["ros__parameters"][selection];
@@ -111,15 +125,17 @@ private:
       cv::setTrackbarPos("Val max", "Segmentation Result", mclass->mValMax_);
       restore = false;
     }
-    cv::putText(segment, selection, cv::Point(10, 30),
-                cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(100, 100, 100), 5);
+    cv::putText(
+      segment, selection, cv::Point(10, 30),
+      cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(100, 100, 100), 5);
     char key = cv::waitKey(100);
     if (key == 's') {
       mclass->mSavePrompt_ = true;
     }
     if (mclass->mSavePrompt_) {
-      cv::putText(segment, "Save params? (y/n)", cv::Point(10, 60),
-                  cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(100, 100, 100), 5);
+      cv::putText(
+        segment, "Save params? (y/n)", cv::Point(10, 60),
+        cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(100, 100, 100), 5);
       if (key == 'y') {
         mclass->saveParams();
         mclass->mSavePrompt_ = false;

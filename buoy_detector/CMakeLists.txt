@@ -26,7 +26,7 @@ find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(image_pipeline_msgs REQUIRED)
 
-add_executable(buoy_detector 
+add_executable(buoy_detector
 src/buoy_detector.cpp)
 
 target_link_libraries(
