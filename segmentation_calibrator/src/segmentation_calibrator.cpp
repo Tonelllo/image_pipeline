@@ -1,5 +1,5 @@
 /*
- * Copyright(2025)
+ * Copyright(2025) UNIGE
  */
 #include <array>
 #include <opencv2/highgui.hpp>

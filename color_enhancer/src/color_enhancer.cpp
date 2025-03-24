@@ -1,5 +1,5 @@
 /*
- * Copyright(2025)
+ * Copyright(2025) UNIGE
  */
 
 #include <opencv2/imgproc/types_c.h>

@@ -1,5 +1,5 @@
 /*
- * Copyright(2025)
+ * Copyright(2025) UNIGE
  */
 #include "pipe_detector/pipe_detector.hpp"
 #include <opencv2/core/types.hpp>

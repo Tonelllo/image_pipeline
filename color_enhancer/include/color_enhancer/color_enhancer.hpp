@@ -1,6 +1,6 @@
 #pragma once
 /*
- * Copyright(2025)
+ * Copyright(2025) UNIGE
  */
 #include <cv_bridge/cv_bridge.h>
 

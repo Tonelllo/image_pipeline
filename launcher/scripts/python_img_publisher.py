@@ -1,3 +1,4 @@
+# Copyright(2025) UNIGE
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
@@ -52,7 +53,7 @@ def main(args=None):
 
     rclpy.spin(video_publisher)
 
-    video_publisher.video_capture.release()  # Release the video capture when done
+    video_publisher.video_capture.release()
     rclpy.shutdown()
 
 

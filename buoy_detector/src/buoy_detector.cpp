@@ -1,5 +1,5 @@
 /*
- * Copyright(2025)
+ * Copyright(2025) UNIGE
  */
 #include "buoy_detector/buoy_detector.hpp"
 #include <algorithm>

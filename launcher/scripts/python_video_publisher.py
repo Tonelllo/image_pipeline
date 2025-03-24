@@ -1,3 +1,4 @@
+# Copyright(2025) UNIGE
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
@@ -14,7 +15,7 @@ class VideoPublisher(Node):
 
         # Initialize OpenCV to read video
         self.video_capture = cv2.VideoCapture(
-            '/home/tonelllo/ros2_ws/src/BetterUnderwater/media/underwater.mp4')  # Change to your MP4 file path
+            '/home/tonelllo/ros2_ws/src/BetterUnderwater/media/underwater.mp4')
 
         # Create CvBridge to convert OpenCV images to ROS2 Image messages
         self.bridge = CvBridge()
@@ -27,7 +28,8 @@ class VideoPublisher(Node):
 
         if ret:
             # Convert the frame from OpenCV (BGR) to ROS2 Image message (RGB)
-            frame = cv2.resize(frame, (frame.shape[1] // 2, frame.shape[0] // 2))
+            frame = cv2.resize(
+                frame, (frame.shape[1] // 2, frame.shape[0] // 2))
             ros_image = self.bridge.cv2_to_imgmsg(frame, encoding="rgb8")
 
             # Publish the image
@@ -47,7 +49,7 @@ def main(args=None):
 
     rclpy.spin(video_publisher)
 
-    video_publisher.video_capture.release()  # Release the video capture when done
+    video_publisher.video_capture.release()
     rclpy.shutdown()
 
 

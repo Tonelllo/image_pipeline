@@ -1,3 +1,4 @@
+# Copyright(2025) UNIGE
 from launch_ros.substitutions import FindPackageShare
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
