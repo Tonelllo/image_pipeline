@@ -22,6 +22,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
+find_package(image_pipeline_msgs REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
 
@@ -34,6 +35,7 @@ target_link_libraries(
   ${OpenCV_LIBRARIES}
   ${cv_bridge_TARGETS}
   ${sensor_msgs_TARGETS}
+  ${image_pipeline_msgs_TARGETS}
 )
 
 target_include_directories(pipe_detector PUBLIC
@@ -54,6 +56,7 @@ ament_target_dependencies(
   OpenCV
   cv_bridge
   sensor_msgs
+  image_pipeline_msgs
   std_srvs
 )
 

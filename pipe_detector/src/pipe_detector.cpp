@@ -17,6 +17,7 @@ PipeDetector::PipeDetector() :
   declare_parameter("hue_max", 255);
   declare_parameter("sat_max", 255);
   declare_parameter("val_max", 255);
+  declare_parameter("show_result", false);
 
   mInTopic_ = get_parameter("in_topic").as_string();
   mOutTopic_ = get_parameter("out_topic").as_string();
@@ -26,11 +27,12 @@ PipeDetector::PipeDetector() :
   mHueMax_ = get_parameter("hue_max").as_int();
   mSatMax_ = get_parameter("sat_max").as_int();
   mValMax_ = get_parameter("val_max").as_int();
+  mShowResult_ = get_parameter("show_result").as_bool();
 
   mInSub_ = create_subscription<sensor_msgs::msg::Image>
               (mInTopic_, 10,
               std::bind(&PipeDetector::getFrame, this, std::placeholders::_1));
-  mOutPub_ = create_publisher<std_msgs::msg::Float32>(mOutTopic_, 10);
+  mOutPub_ = create_publisher<image_pipeline_msgs::msg::PipeLine>(mOutTopic_, 10);
 }
 
 void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img){
@@ -85,16 +87,22 @@ void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img){
       currentMaxSize = size;
     }
     // Draw the longest line (major axis) of the ellipse
-    cv::line(segment, point1, point2, cv::Scalar(0, 0, 255), 2);
+    if (mShowResult_) {
+      cv::line(segment, point1, point2, cv::Scalar(0, 0, 255), 2);
+    }
   }
-  cv::circle(segment, maxP1, 3, cv::Scalar(255, 0, 0), 7);
-  std::cout << maxP1 << std::endl;
-  /*std::cout << maxP1 << "\t" << maxP2 << std::endl;*/
-  cv::imshow("res", segment);
-  cv::waitKey(10);
-  /*std_msgs::msg::Float32 angle;*/
-  /*angle.data = 10.0;*/
-  /*mOutPub_->publish(angle);*/
+  if (mShowResult_) {
+    cv::circle(segment, maxP1, 3, cv::Scalar(255, 0, 0), 7);
+    cv::imshow("pipe detection result", segment);
+    cv::waitKey(10);
+  }
+  image_pipeline_msgs::msg::PipeLine p;
+  p.p1.x = maxP1.x;
+  p.p1.y = maxP1.y;
+  p.p2.x = maxP2.x;
+  p.p2.y = maxP2.y;
+  p.header.stamp = now();
+  mOutPub_->publish(p);
 }
 }  // namespace underwaterEnhancer
 

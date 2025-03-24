@@ -6,6 +6,7 @@
 #include <string>
 
 #include <sensor_msgs/msg/detail/image__struct.hpp>
+#include <image_pipeline_msgs/msg/pipe_line.hpp>
 #include <std_msgs/msg/float32.hpp>
 #include <rclcpp/rclcpp.hpp>
 
@@ -18,7 +19,7 @@ private:
   std::string mInTopic_;
   std::string mOutTopic_;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr mInSub_;
-  rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr mOutPub_;
+  rclcpp::Publisher<image_pipeline_msgs::msg::PipeLine>::SharedPtr mOutPub_;
   cv_bridge::CvImagePtr mCvPtr_;
   cv::Mat mCurrentFrame_;
   void getFrame(sensor_msgs::msg::Image::SharedPtr);
@@ -28,5 +29,6 @@ private:
   int mHueMax_;
   int mSatMax_;
   int mValMax_;
+  bool mShowResult_;
 };
 }  // namespace underwaterEnhancer

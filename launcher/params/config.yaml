@@ -10,6 +10,7 @@ image_pipeline/pipe_detector:
   ros__parameters:
     in_topic: color_enhancer/result
     out_topic: pipe_direction
+    show_result: true
     hue_min: 0
     sat_min: 0
     val_min: 172
@@ -20,6 +21,11 @@ image_pipeline/buoy_detector:
   ros__parameters:
     in_topic: color_enhancer/result
     out_topic: buoy_detector/out
+    min_buoy_radius_px: 10
+    max_buoy_radius_px: 500
+    blob_dilation_size: 15
+    blob_median_blur_size: 15
+    show_result: true
     red_buoy:
       - 137
       - 125

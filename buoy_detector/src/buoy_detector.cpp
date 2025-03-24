@@ -3,7 +3,6 @@
  */
 #include "buoy_detector/buoy_detector.hpp"
 #include <algorithm>
-#include <opencv2/core/cvdef.h>
 #include <opencv2/features2d.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
@@ -18,6 +17,11 @@ BuoyDetector::BuoyDetector() :
   declare_parameter("yellow_buoy", std::vector<int64_t>());
   declare_parameter("black_buoy", std::vector<int64_t>());
   declare_parameter("orange_buoy", std::vector<int64_t>());
+  declare_parameter("min_buoy_radius_px", 1);
+  declare_parameter("max_buoy_radius_px", 300);
+  declare_parameter("blob_dilation_size", 15);
+  declare_parameter("blob_median_blur_size", 15);
+  declare_parameter("show_result", false);
 
   mInTopic_ = get_parameter("in_topic").as_string();
   mOutTopic_ = get_parameter("out_topic").as_string();
@@ -26,12 +30,17 @@ BuoyDetector::BuoyDetector() :
   mBlackBuoy_ = get_parameter("black_buoy").as_integer_array();
   mOrangeBuoy_ = get_parameter("orange_buoy").as_integer_array();
   mYellowBuoy_ = get_parameter("yellow_buoy").as_integer_array();
+  mMinBuoySize_ = get_parameter("min_buoy_radius_px").as_int();
+  mMaxBuoySize_ = get_parameter("max_buoy_radius_px").as_int();
+  mBlobDilationSize_ = get_parameter("blob_dilation_size").as_int();
+  mBlobMedianBlurSize_ = get_parameter("blob_median_blur_size").as_int();
+  mShowResult_ = get_parameter("show_result").as_bool();
 
   mInSub_ = create_subscription<sensor_msgs::msg::Image>
               (mInTopic_, 10,
               std::bind(&BuoyDetector::getFrame, this, std::placeholders::_1));
 
-  mBuoysPub_ = create_publisher<image_pipeline_msgs::msg::BuoyPositionArray>("outbuoys", 10);
+  mBuoysPub_ = create_publisher<image_pipeline_msgs::msg::BuoyPositionArray>(mOutTopic_, 10);
 
   mBuoysParams_.push_back(mRedBuoy_);
   mBuoysParams_.push_back(mWhiteBuoy_);
@@ -45,8 +54,8 @@ BuoyDetector::BuoyDetector() :
   params.filterByColor = true;
   params.blobColor = 255;
   params.filterByArea = true;
-  params.minArea = CV_PI * 10 * 10;
-  params.maxArea = CV_PI * 500 * 500;
+  params.minArea = CV_PI * mMinBuoySize_ * mMinBuoySize_;
+  params.maxArea = CV_PI * mMaxBuoySize_ * mMaxBuoySize_;
   params.filterByCircularity = false;
   params.filterByConvexity = false;
   params.filterByInertia = false;
@@ -66,10 +75,10 @@ void BuoyDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img){
   cv::Mat process;
   cv::Mat out;
   image_pipeline_msgs::msg::BuoyPositionArray ret;
-  int dilationSize = 15;
   kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE,
-                                     cv::Size(2 * dilationSize + 1, 2 * dilationSize + 1),
-                                     cv:: Point(dilationSize, dilationSize));
+                                     cv::Size(2 * mBlobDilationSize_ + 1,
+                                              2 * mBlobDilationSize_ + 1),
+                                     cv:: Point(mBlobDilationSize_, mBlobDilationSize_));
   mCurrentFrame_ = mCvPtr_->image;
   out = mCurrentFrame_;
   for (size_t index = 0; index < mBuoysNames_.size(); index++) {
@@ -84,7 +93,7 @@ void BuoyDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img){
                            mBuoysParams_[index][5]),
                 mask);
     cv::bitwise_and(process, process, segment, mask);
-    cv::medianBlur(mask, mask, 15);
+    cv::medianBlur(mask, mask, mBlobMedianBlurSize_);
     cv::dilate(mask, mask, kernel);
     /*cv::imshow("segmented", mask);*/
     std::vector<cv::KeyPoint> keypoints;
@@ -96,13 +105,15 @@ void BuoyDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img){
     if (biggestBlob == keypoints.end()) {
       continue;
     }
-    /*cv::drawKeypoints(out,*/
-    /*                  keypoints,*/
-    /*                  out,*/
-    /*                  cv::Scalar(0, 0, 0), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);*/
-    /*cv::circle(out, biggestBlob->pt, 3, cv::Scalar(200, 200, 200), 10);*/
-    /*cv::putText(out, mBuoysNames_[index], biggestBlob->pt,*/
-    /*            cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(100, 100, 100), 5);*/
+    if (mShowResult_) {
+      cv::drawKeypoints(out,
+                        keypoints,
+                        out,
+                        cv::Scalar(0, 0, 0), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+      cv::circle(out, biggestBlob->pt, 3, cv::Scalar(200, 200, 200), 10);
+      cv::putText(out, mBuoysNames_[index], biggestBlob->pt,
+                  cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(100, 100, 100), 5);
+    }
     bp.position.x = biggestBlob->pt.x;
     bp.position.y = biggestBlob->pt.y;
     switch (index) {
@@ -124,9 +135,12 @@ void BuoyDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img){
     }
     ret.buoys.push_back(bp);
   }
+  ret.header.stamp = now();
   mBuoysPub_->publish(ret);
-  /*cv::imshow("buoy", out);*/
-  cv::waitKey(100);
+  if (mShowResult_) {
+    cv::imshow("buoy detection result", out);
+    cv::waitKey(100);
+  }
 }
 }  // namespace underwaterEnhancer
 

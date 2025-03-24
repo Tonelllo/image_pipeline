@@ -9,7 +9,6 @@ import os
 def generate_launch_description():
     launcher_path = FindPackageShare(
         package="image_pipeline_launcher").find("image_pipeline_launcher")
-    print(launcher_path)
     params_path = os.path.join(launcher_path, "params", "config.yaml")
 
     color_enhancer = Node(

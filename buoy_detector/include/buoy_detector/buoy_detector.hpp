@@ -26,6 +26,11 @@ private:
   std::vector<int64_t> mBlackBuoy_;
   std::vector<int64_t> mOrangeBuoy_;
   std::vector<int64_t> mYellowBuoy_;
+  int64_t mMinBuoySize_;
+  int64_t mMaxBuoySize_;
+  int64_t mBlobDilationSize_;
+  int64_t mBlobMedianBlurSize_;
+  bool mShowResult_;
   std::vector<std::vector<int64_t>> mBuoysParams_;
   std::array<std::string, 5> mBuoysNames_;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr mInSub_;
