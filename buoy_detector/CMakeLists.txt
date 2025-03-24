@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(image_pipeline_color_enhancer)
+project(image_pipeline_buoy_detector)
 
+include(FetchContent)
 set(CMAKE_CXX_STANDARD 20)
 set(CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -14,7 +15,6 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-add_subdirectory(libs)
 
 add_compile_options(-Wall -Wextra -Wpedantic -O3)
 
@@ -24,26 +24,25 @@ find_package(sensor_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
+find_package(image_pipeline_msgs REQUIRED)
 
-add_executable(color_enhancer 
-src/color_enhancer.cpp)
+add_executable(buoy_detector
+src/buoy_detector.cpp)
 
 target_link_libraries(
-  color_enhancer
-  simpleEnhancer
-  udcp
+  buoy_detector
   rclcpp::rclcpp
   ${OpenCV_LIBRARIES}
   ${cv_bridge_TARGETS}
   ${sensor_msgs_TARGETS}
-  ${std_srvs_TARGETS}
+  ${image_pipeline_msgs_TARGETS}
 )
 
-target_include_directories(color_enhancer PUBLIC
+target_include_directories(buoy_detector PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
-install(TARGETS color_enhancer
+install(TARGETS buoy_detector
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY
@@ -52,11 +51,12 @@ install(DIRECTORY
 )
 
 ament_target_dependencies(
-  color_enhancer
+  buoy_detector
 
   OpenCV
   cv_bridge
   sensor_msgs
+  image_pipeline_msgs
   std_srvs
 )
 

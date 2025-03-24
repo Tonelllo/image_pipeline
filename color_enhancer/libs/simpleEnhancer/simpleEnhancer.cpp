@@ -10,11 +10,13 @@
 #include <opencv2/highgui.hpp>
 
 
-SimpleEnhancer::SimpleEnhancer(bool showSteps, fusionMode_ fm){
+SimpleEnhancer::SimpleEnhancer(bool showSteps, fusionMode_ fm)
+{
   mShowSteps_ = showSteps;
   mFusionMode_ = fm;
 }
-cv::Mat SimpleEnhancer::compensateRedBlue(cv::Mat& image){
+cv::Mat SimpleEnhancer::compensateRedBlue(cv::Mat & image)
+{
   cv::Mat channels[3];
   cv::Mat normChs[3];
   cv::Mat compensated;
@@ -55,7 +57,8 @@ cv::Mat SimpleEnhancer::compensateRedBlue(cv::Mat& image){
   return compensated;
 }
 
-cv::Mat SimpleEnhancer::greyWorldAlg(cv::Mat& image){
+cv::Mat SimpleEnhancer::greyWorldAlg(cv::Mat & image)
+{
   cv::Mat channels[3];
   cv::Mat gray, out;
   double bMean, rMean, gMean, bnMean;
@@ -86,7 +89,8 @@ cv::Mat SimpleEnhancer::greyWorldAlg(cv::Mat& image){
   return out;
 }
 
-cv::Mat SimpleEnhancer::sharpen(cv::Mat& image){
+cv::Mat SimpleEnhancer::sharpen(cv::Mat & image)
+{
   cv::Mat process;
   cv::GaussianBlur(image, process, cv::Size(3, 3), 0.5);
   // 1.5
@@ -94,7 +98,8 @@ cv::Mat SimpleEnhancer::sharpen(cv::Mat& image){
   return process;
 }
 
-cv::Mat SimpleEnhancer::equalizeVal(cv::Mat& image){
+cv::Mat SimpleEnhancer::equalizeVal(cv::Mat & image)
+{
   cv::Mat hsvImg;
   cv::Mat channels[3];
   cv::Mat ret;
@@ -110,7 +115,8 @@ cv::Mat SimpleEnhancer::equalizeVal(cv::Mat& image){
   return ret;
 }
 
-cv::Mat SimpleEnhancer::avgFusion(cv::Mat& image1, cv::Mat& image2){
+cv::Mat SimpleEnhancer::avgFusion(cv::Mat & image1, cv::Mat & image2)
+{
   cv::Mat channels1[3];
   cv::Mat channels2[3];
   cv::Mat avgs[3];
@@ -123,25 +129,26 @@ cv::Mat SimpleEnhancer::avgFusion(cv::Mat& image1, cv::Mat& image2){
 
   cv::accumulate(channels1[BLUE], acc);
   cv::accumulate(channels2[BLUE], acc);
-  acc.convertTo(avgs[BLUE], CV_8UC1, 1.0/2);
+  acc.convertTo(avgs[BLUE], CV_8UC1, 1.0 / 2);
 
   acc = cv::Mat(image1.size(), CV_64FC1, cv::Scalar(0));
 
   cv::accumulate(channels1[GREEN], acc);
   cv::accumulate(channels2[GREEN], acc);
-  acc.convertTo(avgs[GREEN], CV_8UC1, 1.0/2);
+  acc.convertTo(avgs[GREEN], CV_8UC1, 1.0 / 2);
 
   acc = cv::Mat(image1.size(), CV_64FC1, cv::Scalar(0));
 
   cv::accumulate(channels1[RED], acc);
   cv::accumulate(channels2[RED], acc);
-  acc.convertTo(avgs[RED], CV_8UC1, 1.0/2);
+  acc.convertTo(avgs[RED], CV_8UC1, 1.0 / 2);
 
   cv::merge(avgs, 3, ret);
 
   return ret;
 }
-cv::Mat SimpleEnhancer::pcaFusion(cv::Mat& image1, cv::Mat& image2){
+cv::Mat SimpleEnhancer::pcaFusion(cv::Mat & image1, cv::Mat & image2)
+{
   cv::Mat channels1[3];
   cv::Mat channels2[3];
   cv::Mat toMerge[3];
@@ -180,38 +187,39 @@ cv::Mat SimpleEnhancer::pcaFusion(cv::Mat& image1, cv::Mat& image2){
   return fused;
 }
 
-cv::Mat SimpleEnhancer::enhance(cv::Mat& image){
+cv::Mat SimpleEnhancer::enhance(cv::Mat & image)
+{
   cv::Mat ret;
   cv::Mat process;
   cv::Mat contrasted;
   cv::Mat sharpened;
   process = compensateRedBlue(image);
-  if(mShowSteps_) {
+  if (mShowSteps_) {
     cv::imshow("compensatedRB", process);
   }
   process = greyWorldAlg(process);
-  if(mShowSteps_) {
+  if (mShowSteps_) {
     cv::imshow("greyWorld", process);
   }
   sharpened = sharpen(process);
-  if(mShowSteps_) {
+  if (mShowSteps_) {
     cv::imshow("sharpen", sharpened);
   }
   contrasted = equalizeVal(process);
-  if(mShowSteps_) {
+  if (mShowSteps_) {
     cv::imshow("equalized hist", contrasted);
   }
-  if(mFusionMode_ == fusionMode_::PCA) {
+  if (mFusionMode_ == fusionMode_::PCA) {
     ret = pcaFusion(sharpened, contrasted);
-    if(mShowSteps_) {
+    if (mShowSteps_) {
       cv::imshow("pca fused", ret);
     }
-  }else if(mFusionMode_ == fusionMode_::AVG) {
+  } else if (mFusionMode_ == fusionMode_::AVG) {
     ret = avgFusion(sharpened, contrasted);
-    if(mShowSteps_) {
+    if (mShowSteps_) {
       cv::imshow("avg fused", ret);
     }
-  }else{
+  } else {
     throw "Unsupported fusion method";
   }
 

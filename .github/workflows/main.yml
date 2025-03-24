@@ -1,17 +1,18 @@
 name: Humble build test
 on:
   push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
 
 jobs:
-  humble_install:
-    runs_on: ubuntu-latest
+  check_build:
+    runs-on: ubuntu-latest
     container:
-      image: ubuntu:noble
+      image: ubuntu:jammy
     steps:
-      - uses: actions/checkout@v3
       - uses: ros-tooling/setup-ros@v0.7
         with:
           required-ros-distributions: humble

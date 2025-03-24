@@ -1,12 +1,22 @@
-#pragma once
-/*
- * Copyright(2025)
- */
+// Copyright 2025 UNIGE
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-#include <cv_bridge/cv_bridge.h>
+#pragma once
 #include <yaml-cpp/yaml.h>
 #include <sys/types.h>
 #include <sys/ucontext.h>
+#include <cv_bridge/cv_bridge.h>
 
 #include <fstream>
 #include <memory>
@@ -14,6 +24,7 @@
 #include <string>
 #include <filesystem>
 
+#include <rclcpp/logging.hpp>
 #include <opencv2/core/types.hpp>
 #include <opencv2/imgproc.hpp>
 #include <ament_index_cpp/get_package_share_directory.hpp>
@@ -21,8 +32,10 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
 
-namespace underwaterEnhancer {
-class SegmentationCalibrator : public rclcpp::Node {
+namespace underwaterEnhancer
+{
+class SegmentationCalibrator : public rclcpp::Node
+{
 public:
   SegmentationCalibrator();
   ~SegmentationCalibrator();
@@ -30,7 +43,6 @@ public:
 private:
   YAML::Node mConfig_;
   std::string mPkgShare_;
-  std::unique_ptr<std::ofstream> mWriter_;
   int mOption_;
   cv_bridge::CvImagePtr mCvPtr_;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr mInSub_;
@@ -42,91 +54,96 @@ private:
   int mHueMax_;
   int mSatMax_;
   int mValMax_;
+  int mPrevVal_;
   bool mSavePrompt_;
 
   void getFrame(sensor_msgs::msg::Image::SharedPtr);
   void saveParams();
-  static void setup(int, void* obj){
-    SegmentationCalibrator* mclass = static_cast<SegmentationCalibrator*>(obj);
+  static void setup(int, void * obj)
+  {
+    SegmentationCalibrator * mclass = static_cast<SegmentationCalibrator *>(obj);
     cv::Mat mask;
     cv::Mat process;
     cv::Mat segment;
     std::vector<std::vector<cv::Point>> contours;
-    mclass->mCurrentFrame_.convertTo(process, CV_BGR2HSV);
-    if (process.empty()) {
+    if (mclass->mCurrentFrame_.empty()) {
       return;
     }
-
-    cv::inRange(process,
-                cv::Scalar(mclass->mHueMin_, mclass->mSatMin_, mclass->mValMin_),
-                cv::Scalar(mclass->mHueMax_, mclass->mSatMax_, mclass->mValMax_),
-                mask);
+    cv::cvtColor(mclass->mCurrentFrame_, process, CV_BGR2HSV);
+    cv::inRange(
+      process,
+      cv::Scalar(mclass->mHueMin_, mclass->mSatMin_, mclass->mValMin_),
+      cv::Scalar(mclass->mHueMax_, mclass->mSatMax_, mclass->mValMax_),
+      mask);
     cv::bitwise_and(mclass->mCurrentFrame_, mclass->mCurrentFrame_, segment, mask);
 
-
-    cv::findContours(mask, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
-    std::vector<cv::RotatedRect> minEllipse( contours.size());
-    for (size_t i = 0; i < contours.size(); i++) {
-      if (contours[i].size() > 5) {
-        minEllipse[i] = cv::fitEllipse(contours[i]);
-      }
-    }
-    cv::Scalar color = cv::Scalar( 200, 200, 200);
-    for (size_t i = 0; i< contours.size(); i++) {
-      cv::ellipse(segment, minEllipse[i], color, 2);
-      cv::Point2f center = minEllipse[i].center;
-      cv::Size2f axes = minEllipse[i].size;
-      float angle = minEllipse[i].angle;
-
-      // Calculate the two extreme points on the ellipse's major axis
-      cv::Point2f point1(center.x - axes.height / 2 * sin(angle * CV_PI / 180.0),
-                         center.y - axes.height / 2 * -cos(angle * CV_PI / 180.0));
-      cv::Point2f point2(center.x + axes.height / 2 * sin(angle * CV_PI / 180.0),
-                         center.y + axes.height / 2 * -cos(angle * CV_PI / 180.0));
-
-      // Draw the longest line (major axis) of the ellipse
-      cv::line(segment, point1, point2, cv::Scalar(0, 0, 255), 2);
-    }
     std::string selection;
-    switch (mclass->mOption_) {
-    case 0:
-      selection = "red buoy";
-      break;
-    case 1:
-      selection = "black buoy";
-      break;
-    case 2:
-      selection = "yellow buoy";
-      break;
-    case 3:
-      selection = "orange buoy";
-      break;
-    case 4:
-      selection = "white buoy";
-      break;
-    case 5:
-      selection = "pipes";
-      break;
-    case 6:
-      selection = "number";
-      break;
+    bool restore = false;
+    if (mclass->mPrevVal_ != mclass->mOption_) {
+      restore = true;
     }
-    cv::putText(segment, selection, cv::Point(10, 30),
-                cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(100, 100, 100), 5);
+    switch (mclass->mOption_) {
+      case 0:
+        selection = "red_buoy";
+        break;
+      case 1:
+        selection = "black_buoy";
+        break;
+      case 2:
+        selection = "yellow_buoy";
+        break;
+      case 3:
+        selection = "orange_buoy";
+        break;
+      case 4:
+        selection = "white_buoy";
+        break;
+      case 5:
+        selection = "pipes";
+        break;
+      case 6:
+        selection = "number";
+        break;
+    }
+    if (mclass->mOption_ <= 4 && restore) {
+      auto vec = mclass->mConfig_["image_pipeline/buoy_detector"]["ros__parameters"][selection];
+      std::vector<int> vals;
+      for (const auto & v : vec) {
+        vals.push_back(v.as<int>());
+      }
+      mclass->mHueMin_ = vals[0];
+      mclass->mSatMin_ = vals[1];
+      mclass->mValMin_ = vals[2];
+      mclass->mHueMax_ = vals[3];
+      mclass->mSatMax_ = vals[4];
+      mclass->mValMax_ = vals[5];
+      cv::setTrackbarPos("Hue min", "Segmentation Result", mclass->mHueMin_);
+      cv::setTrackbarPos("Sat min", "Segmentation Result", mclass->mSatMin_);
+      cv::setTrackbarPos("Val min", "Segmentation Result", mclass->mValMin_);
+      cv::setTrackbarPos("Hue max", "Segmentation Result", mclass->mHueMax_);
+      cv::setTrackbarPos("Sat max", "Segmentation Result", mclass->mSatMax_);
+      cv::setTrackbarPos("Val max", "Segmentation Result", mclass->mValMax_);
+      restore = false;
+    }
+    cv::putText(
+      segment, selection, cv::Point(10, 30),
+      cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(100, 100, 100), 5);
     char key = cv::waitKey(100);
     if (key == 's') {
       mclass->mSavePrompt_ = true;
     }
     if (mclass->mSavePrompt_) {
-      cv::putText(segment, "Save params? (y/n)", cv::Point(10, 60),
-                  cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(100, 100, 100), 5);
-      if(key == 'y'){
+      cv::putText(
+        segment, "Save params? (y/n)", cv::Point(10, 60),
+        cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(100, 100, 100), 5);
+      if (key == 'y') {
         mclass->saveParams();
         mclass->mSavePrompt_ = false;
-      }else if(key == 'n'){
+      } else if (key == 'n') {
         mclass->mSavePrompt_ = false;
       }
     }
+    mclass->mPrevVal_ = mclass->mOption_;
     cv::imshow("Segmentation Result", segment);
   }
 };
