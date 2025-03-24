@@ -6,8 +6,8 @@ on:
       - main
 
 jobs:
-  humble_install:
-    runs_on: ubuntu-latest
+  check_build:
+    runs-on: ubuntu-latest
     container:
       image: ubuntu:noble
     steps:
