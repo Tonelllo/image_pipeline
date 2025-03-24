@@ -11,7 +11,7 @@ jobs:
   check_build:
     runs-on: ubuntu-latest
     container:
-      image: ubuntu:noble
+      image: ubuntu:jammy
     steps:
       - uses: ros-tooling/setup-ros@v0.7
         with:
