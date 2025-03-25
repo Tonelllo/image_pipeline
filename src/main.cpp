@@ -89,6 +89,8 @@ int main (int argc, char *argv[]) {
         cv::waitKey(100);
       }else{
         std::string outPath = parser.get<std::string>("outpath");
+        std::cout << "Writing image " <<
+          outPath / entry.path().filename() << std::endl;
         cv::imwrite(outPath / entry.path().filename(), outImg);
       }
     }
@@ -193,6 +195,8 @@ int main (int argc, char *argv[]) {
             parser.printMessage();
             exit(1);
           }
+        std::cout << "Writing image " <<
+          std::filesystem::path(outPath) / std::filesystem::path(path).filename() << std::endl;
         cv::imwrite(std::filesystem::path(outPath) / std::filesystem::path(path).filename(),
                     outImg);
       }
