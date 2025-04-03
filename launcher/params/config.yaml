@@ -3,6 +3,7 @@ image_pipeline/color_enhancer:
     in_topic: fake_video
     out_topic: color_enhancer/result
     algorithm: udcp
+    show_result: true
 image_pipeline/segmentation_calibrator:
   ros__parameters:
     in_topic: color_enhancer/result
@@ -10,7 +11,7 @@ image_pipeline/pipe_detector:
   ros__parameters:
     in_topic: color_enhancer/result
     out_topic: pipe_direction
-    show_result: true
+    show_result: false
     hue_min: 0
     sat_min: 0
     val_min: 172
@@ -25,7 +26,7 @@ image_pipeline/buoy_detector:
     max_buoy_radius_px: 500
     blob_dilation_size: 15
     blob_median_blur_size: 15
-    show_result: true
+    show_result: false
     red_buoy:
       - 137
       - 125

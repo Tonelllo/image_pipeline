@@ -46,6 +46,7 @@ private:
   rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr mResPub_;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr mInSub_;
   void processImage(sensor_msgs::msg::Image::SharedPtr);
+  bool mShowResult_;
   std::unique_ptr<UDCP> mUdcp_;
   std::unique_ptr<SimpleEnhancer> mSeAvg_;
   std::unique_ptr<SimpleEnhancer> mSePca_;

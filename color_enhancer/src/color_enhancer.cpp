@@ -12,22 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
 #include <opencv2/imgproc/types_c.h>
+#include <chrono>
 #include <opencv2/highgui.hpp>
 #include <color_enhancer/color_enhancer.hpp>
 
 namespace underwaterEnhancer
 {
 ColorEnhancer::ColorEnhancer()
-: Node("color_enhancer", "/image_pipeline")
+  : Node("color_enhancer", "/image_pipeline")
 {
   declare_parameter("in_topic", "UNSET");
   declare_parameter("out_topic", "UNSET");
   declare_parameter("algorithm", "UNSET");
+  declare_parameter("show_result", false);
 
   mInTopic_ = get_parameter("in_topic").as_string();
   mOutTopic_ = get_parameter("out_topic").as_string();
   mAlgoritm_ = get_parameter("algorithm").as_string();
+  mShowResult_ = get_parameter("show_result").as_bool();
 
   mUdcp_ = std::make_unique<UDCP>(false, 25);
   mSeAvg_ = std::make_unique<SimpleEnhancer>(false, SimpleEnhancer::fusionMode_::AVG);
@@ -36,8 +40,8 @@ ColorEnhancer::ColorEnhancer()
   mResPub_ = create_publisher<sensor_msgs::msg::Image>(mOutTopic_, 10);
   mInSub_ =
     create_subscription<sensor_msgs::msg::Image>(
-    mInTopic_, 10,
-    std::bind(&ColorEnhancer::processImage, this, std::placeholders::_1));
+      mInTopic_, 10,
+      std::bind(&ColorEnhancer::processImage, this, std::placeholders::_1));
 }
 
 void ColorEnhancer::processImage(sensor_msgs::msg::Image::SharedPtr img)
@@ -52,13 +56,20 @@ void ColorEnhancer::processImage(sensor_msgs::msg::Image::SharedPtr img)
   // Converting the image in black and white to have better detection of the arucos
   mCurrentFrame_ = mCvPtr_->image;
   if (mAlgoritm_ == "udcp") {
+    auto start = std::chrono::high_resolution_clock::now();
     mEnhanced_ = mUdcp_->enhance(mCurrentFrame_);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
+    std::cout << "UDCP took " << duration.count() << " ms" << std::endl;
   } else if (mAlgoritm_ == "se_avg") {
     mEnhanced_ = mSeAvg_->enhance(mCurrentFrame_);
   } else if (mAlgoritm_ == "se_pca") {
     mEnhanced_ = mSeAvg_->enhance(mCurrentFrame_);
   }
   cv::Mat tmp;
+  if (mShowResult_) {
+    cv::imshow("enhanced image", mEnhanced_);
+  }
   mCvPtr_->image = mEnhanced_;
   cv::waitKey(10);
   mResPub_->publish(*mCvPtr_->toImageMsg());
