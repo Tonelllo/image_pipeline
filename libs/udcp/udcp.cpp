@@ -3,9 +3,12 @@
 */
 #include <opencv2/core/hal/interface.h>
 
-#include <iostream>
 #include <opencv2/imgproc/types_c.h>
+#include <iostream>
+#include <thread>
 #include <vector>
+#include <algorithm>
+#include <string>
 
 #include <opencv2/core.hpp>
 #include <opencv2/ximgproc.hpp>
@@ -19,6 +22,7 @@ UDCP::UDCP(bool showImage, uint windowSize){
   mWindowSize_ = windowSize;
   r = 60;
   eps = 0.0001;
+  mImageSortBuf_.reserve(1920 * 1080);
 }
 
 cv::Mat UDCP::getDarkChannel(cv::Mat& image){
@@ -31,34 +35,68 @@ cv::Mat UDCP::getDarkChannel(cv::Mat& image){
   return dark;
 }
 
+std::string getImageType(int type) {
+    std::string depth;
+    switch (type & CV_MAT_DEPTH_MASK) {
+        case CV_8U:  depth = "8U"; break;
+        case CV_8S:  depth = "8S"; break;
+        case CV_16U: depth = "16U"; break;
+        case CV_16S: depth = "16S"; break;
+        case CV_32S: depth = "32S"; break;
+        case CV_32F: depth = "32F"; break;
+        case CV_64F: depth = "64F"; break;
+        default:     depth = "Unknown"; break;
+    }
+
+    // Find out the number of channels
+    int channels = 1 + (type >> CV_CN_SHIFT);
+
+    return "CV_" + depth + "C" + std::to_string(channels);
+}
+
 cv::Mat UDCP::getAtmosphere(cv::Mat& orig, cv::Mat& image){
   // TODO(tonello) parameterize
-  uint selectPixNum = floor(image.rows * image.cols * 0.0001);
+  uint selectPixNum = floor(image.rows * image.cols * 0.001);
   double dMax;
   cv::Point dpMax;
   cv::Mat channels[3];
-  double bMean, gMean, rMean;
+  float bMean, gMean, rMean;
   bMean = 0;
   gMean = 0;
   rMean = 0;
 
+  /*std::cout << getImageType(image.type()) << std::endl;*/
+
   cv::split(orig, channels);
+
+  cv::Mat sortedImage = image.clone();
+  for (int i = 0; i < image.rows; ++i) {
+      for (int j = 0; j < image.cols; ++j) {
+          mImageSortBuf_.push_back(cv::Point(j, i));
+      }
+  }
+
+
+
+  std::sort(mImageSortBuf_.begin(), mImageSortBuf_.end(),
+            [&sortedImage](const cv::Point& p1, const cv::Point& p2) {
+                return sortedImage.at<float>(p1) > sortedImage.at<float>(p2);
+            });
 
   // Maybe thresholding
   for(size_t i = 0; i < selectPixNum; i++){
-    cv::minMaxLoc(image, nullptr, &dMax, nullptr, &dpMax);
-    image.at<uchar>(dpMax) = 0;
-
-    bMean += channels[BLUE].at<double>(dpMax.y, dpMax.x);
-    gMean += channels[GREEN].at<double>(dpMax.y, dpMax.x);
-    rMean += channels[RED].at<double>(dpMax.y, dpMax.x);
+    cv::Point dpMax = mImageSortBuf_[i];
+    bMean += channels[BLUE].at<float>(dpMax);
+    gMean += channels[GREEN].at<float>(dpMax);
+    rMean += channels[RED].at<float>(dpMax);
   }
+  mImageSortBuf_.clear();
 
   bMean /= selectPixNum;
   gMean /= selectPixNum;
   rMean /= selectPixNum;
 
-  return cv::Mat(image.size(), CV_64FC3, cv::Scalar(bMean, gMean, rMean));
+  return cv::Mat(image.size(), CV_32FC3, cv::Scalar(bMean, gMean, rMean));
 }
 
 cv::Mat UDCP::transmissionEstimate(cv::Mat& image, cv::Mat& atm){
@@ -69,23 +107,18 @@ cv::Mat UDCP::transmissionEstimate(cv::Mat& image, cv::Mat& atm){
 
   dc = getDarkChannel(res);
 
-  dc = 1 - dc;
+  dc = 1 - 0.95 * dc;
 
   return dc;
 }
 
 cv::Mat UDCP::finalPass(cv::Mat &image, cv::Mat& atm, cv::Mat& guided){
   cv::Mat guided3;
-  cv::Mat tmp[3];
   cv::Mat res;
 
-  tmp[0] = guided;
-  tmp[1] = guided;
-  tmp[2] = guided;
+  cv::merge(std::array<cv::Mat, 3>{guided, guided, guided}, guided3);
 
-  cv::merge(tmp, 3, guided3);
-
-  guided3.convertTo(guided3, CV_64FC3);
+  guided3.convertTo(guided3, CV_32FC3);
 
   cv::divide(image - atm, guided3, res);
   res += atm;
@@ -100,13 +133,16 @@ cv::Mat UDCP::enhance(cv::Mat& image){
   cv::Mat guided;
   cv::Mat bwImage;
   cv::Mat normImage;
-  image.convertTo(normImage, CV_64FC3, 1.0 / 255.0);
+  image.convertTo(normImage, CV_32FC3, 1.0 / 255.0);
 
-  darkCh = getDarkChannel(normImage);
+  darkCh = getDarkChannel(normImage);  // OK
   atm = getAtmosphere(normImage, darkCh);
+  /*std::cout << atm.at<float>(0, 0) << std::endl;*/
+  /*cv::imshow("guide", atm);*/
+  /*cv::waitKey(60);*/
   process = transmissionEstimate(normImage, atm);
-  cv::cvtColor(image, bwImage, CV_BGR2HSV);
-  process.convertTo(process, CV_32F);
+  cv::cvtColor(image, bwImage, CV_BGR2GRAY);
+  /*process.convertTo(process, CV_32F);*/
   cv::ximgproc::guidedFilter(bwImage, process, guided, r, eps);
   process = finalPass(normImage, atm, guided);
   return process;

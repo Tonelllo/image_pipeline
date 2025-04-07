@@ -2,6 +2,7 @@
 /*
 * copyright 2025
 */
+#include <vector>
 #include <opencv2/core.hpp>
 
 class UDCP {
@@ -14,6 +15,7 @@ private:
   cv::Mat transmissionEstimate(cv::Mat&, cv::Mat&);
   cv::Mat finalPass(cv::Mat&, cv::Mat&, cv::Mat&);
   enum channels{BLUE, GREEN, RED};
+  std::vector<cv::Point> mImageSortBuf_;
   bool mShowImage_;
   uint mWindowSize_;
   double r;
