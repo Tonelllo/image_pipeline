@@ -69,18 +69,17 @@ cv::Mat UDCP::getAtmosphere(cv::Mat& orig, cv::Mat& image){
 
   cv::split(orig, channels);
 
-  cv::Mat sortedImage = image.clone();
   for (int i = 0; i < image.rows; ++i) {
       for (int j = 0; j < image.cols; ++j) {
           mImageSortBuf_.push_back(cv::Point(j, i));
       }
   }
 
-
-
-  std::sort(mImageSortBuf_.begin(), mImageSortBuf_.end(),
-            [&sortedImage](const cv::Point& p1, const cv::Point& p2) {
-                return sortedImage.at<float>(p1) > sortedImage.at<float>(p2);
+  std::partial_sort(mImageSortBuf_.begin(),
+                    mImageSortBuf_.begin() + selectPixNum,
+                    mImageSortBuf_.end(),
+            [&image](const cv::Point& p1, const cv::Point& p2) {
+                return image.at<float>(p1) > image.at<float>(p2);
             });
 
   // Maybe thresholding
@@ -118,11 +117,8 @@ cv::Mat UDCP::finalPass(cv::Mat &image, cv::Mat& atm, cv::Mat& guided){
 
   cv::merge(std::array<cv::Mat, 3>{guided, guided, guided}, guided3);
 
-  guided3.convertTo(guided3, CV_32FC3);
-
-  cv::divide(image - atm, guided3, res);
-  res += atm;
-  res.convertTo(res, CV_8UC3, 255.0);
+  cv::add(atm, (image - atm) / guided3, res);
+  /*res.convertTo(res, CV_8UC3, 255.0);*/
   return res;
 }
 

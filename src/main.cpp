@@ -121,7 +121,7 @@ int main (int argc, char *argv[]) {
           std::string algorithm = parser.get<std::string>("algorithm");
           if(algorithm == "udcp"){
             auto start = std::chrono::high_resolution_clock::now();
-            /*cv::resize(frame, frame, cv::Size(640, 384));*/
+            cv::resize(frame, frame, cv::Size(640, 384));
             outImg = udcp.enhance(frame);
             auto end = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
