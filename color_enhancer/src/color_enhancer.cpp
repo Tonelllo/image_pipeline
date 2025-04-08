@@ -14,7 +14,6 @@
 
 
 #include <opencv2/imgproc/types_c.h>
-#include <chrono>
 #include <opencv2/highgui.hpp>
 #include <color_enhancer/color_enhancer.hpp>
 
@@ -56,11 +55,7 @@ void ColorEnhancer::processImage(sensor_msgs::msg::Image::SharedPtr img)
   // Converting the image in black and white to have better detection of the arucos
   mCurrentFrame_ = mCvPtr_->image;
   if (mAlgoritm_ == "udcp") {
-    auto start = std::chrono::high_resolution_clock::now();
     mEnhanced_ = mUdcp_->enhance(mCurrentFrame_);
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
-    std::cout << "UDCP took " << duration.count() << " ms" << std::endl;
   } else if (mAlgoritm_ == "se_avg") {
     mEnhanced_ = mSeAvg_->enhance(mCurrentFrame_);
   } else if (mAlgoritm_ == "se_pca") {
