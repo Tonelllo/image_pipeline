@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import rclpy
+import time
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
@@ -51,7 +52,13 @@ class VideoPublisher(Node):
     def publish_frame(self):
         out = rotate_image(self.img, self.angle)
         self.angle += 1
-        ros_image = self.bridge.cv2_to_imgmsg(out, encoding="bgr8")
+        height = 384
+        width = 640
+        start_time = time.time()
+        resized_image = cv2.resize(out, (width, height))
+        end_time = time.time()
+        print("Resize took: ", end_time - start_time)
+        ros_image = self.bridge.cv2_to_imgmsg(resized_image, encoding="bgr8")
 
         # Publish the image
         self.publisher.publish(ros_image)

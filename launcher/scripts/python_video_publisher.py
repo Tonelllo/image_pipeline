@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import rclpy
+import time
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
@@ -21,14 +22,14 @@ import cv2
 
 class VideoPublisher(Node):
     def __init__(self):
-        super().__init__('video_publisher')
+        super().__init__('video_publisher', namespace='image_pipeline')
 
         # Create a publisher to send Image messages
-        self.publisher = self.create_publisher(Image, 'in', 10)
+        self.publisher = self.create_publisher(Image, 'fake_video', 10)
 
         # Initialize OpenCV to read video
         self.video_capture = cv2.VideoCapture(
-            '/home/tonelllo/ros2_ws/src/BetterUnderwater/media/underwater.mp4')
+            '/home/tonelllo/ros2_ws/src/image_pipeline/media/underwater.mp4')
 
         # Create CvBridge to convert OpenCV images to ROS2 Image messages
         self.bridge = CvBridge()
@@ -41,9 +42,14 @@ class VideoPublisher(Node):
 
         if ret:
             # Convert the frame from OpenCV (BGR) to ROS2 Image message (RGB)
+            height = 384
+            width = 640
+            start_time = time.time()
             frame = cv2.resize(
-                frame, (frame.shape[1] // 2, frame.shape[0] // 2))
-            ros_image = self.bridge.cv2_to_imgmsg(frame, encoding="rgb8")
+                frame, (width, height))
+            end_time = time.time()
+            print("Resize took: ", (end_time - start_time) * 1000, "ms")
+            ros_image = self.bridge.cv2_to_imgmsg(frame, encoding="bgr8")
 
             # Publish the image
             self.publisher.publish(ros_image)

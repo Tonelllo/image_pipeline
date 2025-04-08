@@ -1,5 +1,10 @@
 project(underwater_images_enhancement)
 
+# set(CMAKE_C_FLAGS -pg)
+# set(CMAKE_CXX_FLAGS -pg)
+# set(CMAKE_EXE_LINKER_FLAGS -pg)
+# set(CMAKE_SHARED_LINKER_FLAGS -pg)
+
 set(simpleEnhancer_FILES 
 simpleEnhancer/simpleEnhancer.cpp
 simpleEnhancer/simpleEnhancer.hpp)
