@@ -7,7 +7,7 @@
 
 class UDCP {
 public:
-  explicit UDCP(bool, uint);
+  explicit UDCP(bool, uint, uint64_t, uint64_t);
   cv::Mat enhance(cv::Mat&);
 private:
   cv::Mat getDarkChannel(cv::Mat&);
@@ -16,6 +16,7 @@ private:
   cv::Mat finalPass(cv::Mat&, cv::Mat&, cv::Mat&);
   enum channels{BLUE, GREEN, RED};
   std::vector<cv::Point> mImageSortBuf_;
+  cv::Mat mStructuringKernel_;
   bool mShowImage_;
   uint mWindowSize_;
   double r;

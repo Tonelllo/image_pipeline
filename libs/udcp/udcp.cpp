@@ -17,12 +17,14 @@
 #include <opencv2/imgproc.hpp>
 #include <udcp/udcp.hpp>
 
-UDCP::UDCP(bool showImage, uint windowSize){
+UDCP::UDCP(bool showImage, uint windowSize, uint64_t width, uint64_t height){
   mShowImage_ = showImage;
   mWindowSize_ = windowSize;
   r = 60;
   eps = 0.0001;
-  mImageSortBuf_.reserve(1920 * 1080);
+  mImageSortBuf_.reserve(width * height);
+  mStructuringKernel_ =
+    cv::getStructuringElement(cv::MORPH_RECT, cv::Size(mWindowSize_, mWindowSize_));
 }
 
 cv::Mat UDCP::getDarkChannel(cv::Mat& image){
@@ -30,8 +32,7 @@ cv::Mat UDCP::getDarkChannel(cv::Mat& image){
   cv::Mat dc, kernel, dark;
   cv::split(image, channels);
   dc = cv::min(cv::min(channels[RED], channels[GREEN]), channels[BLUE]);
-  kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(mWindowSize_, mWindowSize_));
-  cv::erode(dc, dark, kernel);
+  cv::erode(dc, dark, mStructuringKernel_);
   return dark;
 }
 
