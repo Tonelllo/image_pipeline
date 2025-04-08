@@ -33,7 +33,7 @@ ColorEnhancer::ColorEnhancer()
   mAlgoritm_ = get_parameter("algorithm").as_string();
   mShowResult_ = get_parameter("show_result").as_bool();
 
-  mUdcp_ = std::make_unique<UDCP>(false, 25);
+  mUdcp_ = std::make_unique<UDCP>(false, 25, 1920, 1080);
   mSeAvg_ = std::make_unique<SimpleEnhancer>(false, SimpleEnhancer::fusionMode_::AVG);
   mSePca_ = std::make_unique<SimpleEnhancer>(false, SimpleEnhancer::fusionMode_::PCA);
 

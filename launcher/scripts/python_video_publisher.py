@@ -49,7 +49,7 @@ class VideoPublisher(Node):
                 frame, (width, height))
             end_time = time.time()
             print("Resize took: ", (end_time - start_time) * 1000, "ms")
-            ros_image = self.bridge.cv2_to_imgmsg(frame, encoding="rgb8")
+            ros_image = self.bridge.cv2_to_imgmsg(frame, encoding="bgr8")
 
             # Publish the image
             self.publisher.publish(ros_image)
