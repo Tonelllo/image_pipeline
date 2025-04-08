@@ -1,10 +1,12 @@
 /*
  * Copyright 2025 
 */
+#include <chrono>
 #include <iostream>
 #include <filesystem>
 
 #include "udcp/udcp.hpp"
+#include <numeric>
 #include <opencv2/core.hpp>
 #include <opencv2/core/utility.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -12,6 +14,8 @@
 #include <opencv2/videoio.hpp>
 #include <opencv2/imgproc.hpp>
 #include <simpleEnhancer/simpleEnhancer.hpp>
+
+std::vector<int> history;
 
 int main (int argc, char *argv[]) {
   const std::string keys =
@@ -107,15 +111,23 @@ int main (int argc, char *argv[]) {
         exit(1);
       }
       if(parser.has("show")){
+        int count = 100;
         while(true){
           video >> frame;
           if(frame.empty()){
             break;
           }
-          cv::resize(frame, frame, cv::Size(frame.cols/2, frame.rows/2));
+          /*cv::resize(frame, frame, cv::Size(frame.cols/2, frame.rows/2));*/
           std::string algorithm = parser.get<std::string>("algorithm");
           if(algorithm == "udcp"){
+            auto start = std::chrono::high_resolution_clock::now();
+            cv::resize(frame, frame, cv::Size(640, 384));
             outImg = udcp.enhance(frame);
+            auto end = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+            history.push_back(duration.count());
+            auto avg = std::accumulate(history.begin(), history.end(), 0.0);
+            std::cout << avg / history.size() << std::endl;
           }else if (algorithm == "se_avg"){
             outImg = seAvg.enhance(frame);
           }else if (algorithm == "se_pca"){
