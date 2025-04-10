@@ -64,9 +64,10 @@ void ColorEnhancer::processImage(sensor_msgs::msg::Image::SharedPtr img)
   cv::Mat tmp;
   if (mShowResult_) {
     cv::imshow("enhanced image", mEnhanced_);
+    cv::waitKey(10);
   }
+  mEnhanced_.convertTo(mEnhanced_, CV_8UC3, 255);
   mCvPtr_->image = mEnhanced_;
-  cv::waitKey(10);
   mResPub_->publish(*mCvPtr_->toImageMsg());
 }
 }  // namespace underwaterEnhancer

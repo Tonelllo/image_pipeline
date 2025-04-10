@@ -11,7 +11,7 @@ image_pipeline/pipe_detector:
   ros__parameters:
     in_topic: color_enhancer/result
     out_topic: pipe_direction
-    show_result: false
+    show_result: true
     hue_min: 0
     sat_min: 0
     val_min: 172

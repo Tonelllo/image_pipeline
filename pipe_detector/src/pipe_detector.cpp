@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "pipe_detector/pipe_detector.hpp"
+#include <opencv2/core.hpp>
 #include <opencv2/core/types.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
@@ -72,6 +73,14 @@ void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
     cv::Scalar(mHueMax_, mSatMax_, mValMax_),
     mask);
   cv::bitwise_and(mCurrentFrame_, mCurrentFrame_, segment, mask);
+  cv::Mat points, covar, mean;
+  cv::findNonZero(mask, points);
+  points.convertTo(points, CV_32FC1);
+  points.reshape(1);
+  std::cout << points.size.dims() << std::endl;
+  std::cout << points.rows << std::endl;
+  std::cout << points.cols << std::endl;
+  cv::calcCovarMatrix(points, covar, mean, cv::COVAR_NORMAL | cv::COVAR_ROWS);
   cv::findContours(mask, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
   std::vector<cv::RotatedRect> minEllipse(contours.size());
   for (size_t i = 0; i < contours.size(); i++) {
