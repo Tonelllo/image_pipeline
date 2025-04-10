@@ -57,7 +57,7 @@ int main (int argc, char *argv[]) {
 
   SimpleEnhancer sePca(false, SimpleEnhancer::fusionMode_::PCA);
   SimpleEnhancer seAvg(false, SimpleEnhancer::fusionMode_::AVG);
-  UDCP udcp(false, 25);
+  UDCP udcp(false, 25, 1920, 1080);
   cv::Mat inImg;
   cv::Mat outImg;
 
@@ -117,11 +117,11 @@ int main (int argc, char *argv[]) {
           if(frame.empty()){
             break;
           }
-          /*cv::resize(frame, frame, cv::Size(frame.cols/2, frame.rows/2));*/
           std::string algorithm = parser.get<std::string>("algorithm");
           if(algorithm == "udcp"){
             auto start = std::chrono::high_resolution_clock::now();
-            cv::resize(frame, frame, cv::Size(640, 384));
+          cv::resize(frame, frame, cv::Size(frame.cols/2, frame.rows/2));
+            /*cv::resize(frame, frame, cv::Size(640, 384));*/
             outImg = udcp.enhance(frame);
             auto end = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
