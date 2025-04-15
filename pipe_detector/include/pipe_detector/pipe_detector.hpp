@@ -29,6 +29,8 @@ public:
   PipeDetector();
 
 private:
+  bool mFlipDirection_;
+  cv::Point2f mPrevDir_;
   std::string mInTopic_;
   std::string mOutTopic_;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr mInSub_;

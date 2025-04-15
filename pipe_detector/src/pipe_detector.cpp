@@ -43,6 +43,8 @@ PipeDetector::PipeDetector()
   mValMax_ = get_parameter("val_max").as_int();
   mShowResult_ = get_parameter("show_result").as_bool();
 
+  mFlipDirection_ = false;
+
   mInSub_ = create_subscription<sensor_msgs::msg::Image>(
     mInTopic_, 10,
     std::bind(&PipeDetector::getFrame, this, std::placeholders::_1));
@@ -93,6 +95,8 @@ void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
   cv::Point2f maxP1;
   cv::Point2f maxP2;
   uint64 currentMaxSize = 0;
+  int maxIdx = -1;
+  cv::Point2f curDir;
   for (size_t i = 0; i < contours.size(); i++) {
     cv::ellipse(segment, minEllipse[i], color, 2);
     cv::Point2f center = minEllipse[i].center;
@@ -108,28 +112,42 @@ void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
                        center.y + axes.height / 2 * -cos(angleRad));
 
     cv::Point2f axisDir(-std::sin(angleRad), std::cos(angleRad));
-    if (axisDir.x < 0) {
-        axisDir = -axisDir;
-    }
 
+    axisDir = cv::Point2f(eigenvectors.row(0));
     if (size > currentMaxSize) {
+      maxIdx = i;
       maxP1 = point1;
       maxP2 = point2;
       currentMaxSize = size;
+      curDir = axisDir;
     }
     // Draw the longest line (major axis) of the ellipse
     if (mShowResult_) {
       cv::line(segment, point1, point2, cv::Scalar(0, 0, 255), 2);
-      /*cv::arrowedLine(segment,*/
-      /*                center,*/
-      /*                center + axisDir * 30, cv::Scalar(0, 0, 255), 2, cv::LINE_AA, 0, 0.2);*/
+
       cv::arrowedLine(segment,
                       center,
-                      center + cv::Point2f(eigenvectors.row(0)) * 30,
-                      cv::Scalar(255, 0, 0), 2, cv::LINE_AA, 0, 0.2);
+                      center + axisDir * 30, cv::Scalar(0, 0, 255), 2, cv::LINE_AA, 0, 0.2);
+      /*cv::arrowedLine(segment,*/
+      /*                center,*/
+      /*                center + cv::Point2f(eigenvectors.row(0)) * 30,*/
+      /*                cv::Scalar(0, 0, 255), 2, cv::LINE_AA, 0, 0.2);*/
     }
   }
   if (mShowResult_) {
+    if (maxIdx >= 0) {
+      if (mPrevDir_.x * curDir.x < 0 && mPrevDir_.y * curDir.y < 0) {
+        mFlipDirection_ = !mFlipDirection_;
+      }
+      mPrevDir_ = curDir;
+      if(mFlipDirection_){
+        curDir = -curDir;
+      }
+      cv::arrowedLine(segment,
+                      minEllipse[maxIdx].center,
+                      minEllipse[maxIdx].center + curDir * 30,
+                      cv::Scalar(0, 255, 0), 2, cv::LINE_AA, 0, 0.2);
+    }
     cv::circle(segment, maxP1, 3, cv::Scalar(255, 0, 0), 7);
     cv::imshow("pipe detection result", segment);
     cv::waitKey(10);
