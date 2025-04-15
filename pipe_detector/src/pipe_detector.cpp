@@ -21,7 +21,7 @@
 namespace underwaterEnhancer
 {
 PipeDetector::PipeDetector()
-: Node("pipe_detector", "/image_pipeline")
+  : Node("pipe_detector", "/image_pipeline")
 {
   declare_parameter("in_topic", "UNSET");
   declare_parameter("out_topic", "UNSET");
@@ -74,13 +74,14 @@ void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
     mask);
   cv::bitwise_and(mCurrentFrame_, mCurrentFrame_, segment, mask);
   cv::Mat points, covar, mean;
+  cv::dilate(mask, mask,
+             cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(19, 19), cv::Point(9, 9)));
   cv::findNonZero(mask, points);
   points.convertTo(points, CV_32FC1);
-  points.reshape(1);
-  std::cout << points.size.dims() << std::endl;
-  std::cout << points.rows << std::endl;
-  std::cout << points.cols << std::endl;
+  points = points.reshape(1);
   cv::calcCovarMatrix(points, covar, mean, cv::COVAR_NORMAL | cv::COVAR_ROWS);
+  cv::Mat eigenvalues, eigenvectors;
+  cv::eigen(covar, eigenvalues, eigenvectors);
   cv::findContours(mask, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
   std::vector<cv::RotatedRect> minEllipse(contours.size());
   for (size_t i = 0; i < contours.size(); i++) {
@@ -100,10 +101,16 @@ void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
     float angle = minEllipse[i].angle;
 
     // Calculate the two extreme points on the ellipse's major axis
-    cv::Point2f point1(center.x - axes.height / 2 * sin(angle * CV_PI / 180.0),
-      center.y - axes.height / 2 * -cos(angle * CV_PI / 180.0));
-    cv::Point2f point2(center.x + axes.height / 2 * sin(angle * CV_PI / 180.0),
-      center.y + axes.height / 2 * -cos(angle * CV_PI / 180.0));
+    double angleRad = angle * CV_PI / 180.0;
+    cv::Point2f point1(center.x - axes.height / 2 * sin(angleRad),
+                       center.y - axes.height / 2 * -cos(angleRad));
+    cv::Point2f point2(center.x + axes.height / 2 * sin(angleRad),
+                       center.y + axes.height / 2 * -cos(angleRad));
+
+    cv::Point2f axisDir(-std::sin(angleRad), std::cos(angleRad));
+    if (axisDir.x < 0) {
+        axisDir = -axisDir;
+    }
 
     if (size > currentMaxSize) {
       maxP1 = point1;
@@ -113,6 +120,13 @@ void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
     // Draw the longest line (major axis) of the ellipse
     if (mShowResult_) {
       cv::line(segment, point1, point2, cv::Scalar(0, 0, 255), 2);
+      /*cv::arrowedLine(segment,*/
+      /*                center,*/
+      /*                center + axisDir * 30, cv::Scalar(0, 0, 255), 2, cv::LINE_AA, 0, 0.2);*/
+      cv::arrowedLine(segment,
+                      center,
+                      center + cv::Point2f(eigenvectors.row(0)) * 30,
+                      cv::Scalar(255, 0, 0), 2, cv::LINE_AA, 0, 0.2);
     }
   }
   if (mShowResult_) {
