@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "pipe_detector/pipe_detector.hpp"
+#include <opencv2/core.hpp>
 #include <opencv2/core/types.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
@@ -20,7 +21,7 @@
 namespace underwaterEnhancer
 {
 PipeDetector::PipeDetector()
-: Node("pipe_detector", "/image_pipeline")
+  : Node("pipe_detector", "/image_pipeline")
 {
   declare_parameter("in_topic", "UNSET");
   declare_parameter("out_topic", "UNSET");
@@ -42,10 +43,12 @@ PipeDetector::PipeDetector()
   mValMax_ = get_parameter("val_max").as_int();
   mShowResult_ = get_parameter("show_result").as_bool();
 
+  mFlipDirection_ = false;
+
   mInSub_ = create_subscription<sensor_msgs::msg::Image>(
     mInTopic_, 10,
     std::bind(&PipeDetector::getFrame, this, std::placeholders::_1));
-  mOutPub_ = create_publisher<image_pipeline_msgs::msg::PipeLine>(mOutTopic_, 10);
+  mOutPub_ = create_publisher<image_pipeline_msgs::msg::PipeDirection>(mOutTopic_, 10);
 }
 
 void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
@@ -72,52 +75,54 @@ void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
     cv::Scalar(mHueMax_, mSatMax_, mValMax_),
     mask);
   cv::bitwise_and(mCurrentFrame_, mCurrentFrame_, segment, mask);
-  cv::findContours(mask, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+  cv::Mat points, covar, mean, maxPoints;
+  cv::dilate(mask, mask,
+             cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(19, 19), cv::Point(9, 9)));
+  cv::findContours(mask, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
   std::vector<cv::RotatedRect> minEllipse(contours.size());
-  for (size_t i = 0; i < contours.size(); i++) {
-    if (contours[i].size() > 5) {
-      minEllipse[i] = cv::fitEllipse(contours[i]);
-    }
-  }
-  cv::Scalar color = cv::Scalar(200, 200, 200);
-  cv::Point2f maxP1;
-  cv::Point2f maxP2;
   uint64 currentMaxSize = 0;
   for (size_t i = 0; i < contours.size(); i++) {
-    cv::ellipse(segment, minEllipse[i], color, 2);
-    cv::Point2f center = minEllipse[i].center;
-    cv::Size2f axes = minEllipse[i].size;
-    auto size = minEllipse[i].size.height * minEllipse[i].size.width;
-    float angle = minEllipse[i].angle;
-
-    // Calculate the two extreme points on the ellipse's major axis
-    cv::Point2f point1(center.x - axes.height / 2 * sin(angle * CV_PI / 180.0),
-      center.y - axes.height / 2 * -cos(angle * CV_PI / 180.0));
-    cv::Point2f point2(center.x + axes.height / 2 * sin(angle * CV_PI / 180.0),
-      center.y + axes.height / 2 * -cos(angle * CV_PI / 180.0));
+    uint64 size = 0;
+    cv::Mat blobMask = cv::Mat::zeros(mask.size(), CV_8UC1);
+    cv::drawContours(blobMask, contours, static_cast<int>(i), cv::Scalar(255), cv::FILLED);
+    cv::findNonZero(mask, points);
+    size = points.rows;
 
     if (size > currentMaxSize) {
-      maxP1 = point1;
-      maxP2 = point2;
       currentMaxSize = size;
+      maxPoints = points;
     }
-    // Draw the longest line (major axis) of the ellipse
+  }
+
+  if (!maxPoints.empty()) {
+    maxPoints.convertTo(maxPoints, CV_32FC1);
+    maxPoints = maxPoints.reshape(1);
+    cv::calcCovarMatrix(maxPoints, covar, mean, cv::COVAR_NORMAL | cv::COVAR_ROWS);
+    cv::Mat eigenvalues, eigenvectors;
+    cv::eigen(covar, eigenvalues, eigenvectors);
+    cv::Point2f axisDir = cv::Point2f(eigenvectors.row(0));
+    if (mPrevDir_.x * axisDir.x < 0 && mPrevDir_.y * axisDir.y < 0) {
+      mFlipDirection_ = !mFlipDirection_;
+    }
+    mPrevDir_ = axisDir;
+    if (mFlipDirection_) {
+      axisDir = -axisDir;
+    }
     if (mShowResult_) {
-      cv::line(segment, point1, point2, cv::Scalar(0, 0, 255), 2);
+      cv::arrowedLine(segment,
+                      cv::Point2f(100, 100),
+                      cv::Point2f(100, 100) + axisDir * 30,
+                      cv::Scalar(0, 255, 0), 2, cv::LINE_AA, 0, 0.2);
+      cv::imshow("pipe detection result", segment);
+      cv::waitKey(10);
     }
+
+    image_pipeline_msgs::msg::PipeDirection p;
+    p.direction.x = axisDir.x;
+    p.direction.y = axisDir.y;
+    p.header.stamp = now();
+    mOutPub_->publish(p);
   }
-  if (mShowResult_) {
-    cv::circle(segment, maxP1, 3, cv::Scalar(255, 0, 0), 7);
-    cv::imshow("pipe detection result", segment);
-    cv::waitKey(10);
-  }
-  image_pipeline_msgs::msg::PipeLine p;
-  p.p1.x = maxP1.x;
-  p.p1.y = maxP1.y;
-  p.p2.x = maxP2.x;
-  p.p2.y = maxP2.y;
-  p.header.stamp = now();
-  mOutPub_->publish(p);
 }
 }  // namespace underwaterEnhancer
 

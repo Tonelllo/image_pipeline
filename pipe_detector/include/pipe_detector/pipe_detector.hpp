@@ -17,7 +17,7 @@
 #include <string>
 
 #include <sensor_msgs/msg/detail/image__struct.hpp>
-#include <image_pipeline_msgs/msg/pipe_line.hpp>
+#include <image_pipeline_msgs/msg/pipe_direction.hpp>
 #include <std_msgs/msg/float32.hpp>
 #include <rclcpp/rclcpp.hpp>
 
@@ -29,10 +29,12 @@ public:
   PipeDetector();
 
 private:
+  bool mFlipDirection_;
+  cv::Point2f mPrevDir_;
   std::string mInTopic_;
   std::string mOutTopic_;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr mInSub_;
-  rclcpp::Publisher<image_pipeline_msgs::msg::PipeLine>::SharedPtr mOutPub_;
+  rclcpp::Publisher<image_pipeline_msgs::msg::PipeDirection>::SharedPtr mOutPub_;
   cv_bridge::CvImagePtr mCvPtr_;
   cv::Mat mCurrentFrame_;
   void getFrame(sensor_msgs::msg::Image::SharedPtr);
