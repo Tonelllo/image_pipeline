@@ -76,6 +76,7 @@ void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
     mask);
   cv::bitwise_and(mCurrentFrame_, mCurrentFrame_, segment, mask);
   cv::Mat points, covar, mean, maxPoints;
+  cv::Point2f center;
   cv::dilate(mask, mask,
              cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(19, 19), cv::Point(9, 9)));
   cv::findContours(mask, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
@@ -91,6 +92,8 @@ void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
     if (size > currentMaxSize) {
       currentMaxSize = size;
       maxPoints = points;
+      cv::Moments m = cv::moments(contours[i]);
+      center = cv::Point2f(m.m10 / m.m00, m.m01 / m.m00);
     }
   }
 
@@ -113,6 +116,7 @@ void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
                       cv::Point2f(100, 100),
                       cv::Point2f(100, 100) + axisDir * 30,
                       cv::Scalar(0, 255, 0), 2, cv::LINE_AA, 0, 0.2);
+      cv::circle(segment, center, 5, cv::Scalar(0, 0, 255), -1);
       cv::imshow("pipe detection result", segment);
       cv::waitKey(10);
     }
@@ -120,6 +124,8 @@ void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
     image_pipeline_msgs::msg::PipeDirection p;
     p.direction.x = axisDir.x;
     p.direction.y = axisDir.y;
+    p.position.x = center.x;
+    p.position.y = center.y;
     p.header.stamp = now();
     mOutPub_->publish(p);
   }
