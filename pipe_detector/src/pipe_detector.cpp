@@ -117,6 +117,7 @@ void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
                       cv::Point2f(100, 100) + axisDir * 30,
                       cv::Scalar(0, 255, 0), 2, cv::LINE_AA, 0, 0.2);
       cv::circle(segment, center, 5, cv::Scalar(0, 0, 255), -1);
+
       cv::imshow("pipe detection result", segment);
       cv::waitKey(10);
     }
