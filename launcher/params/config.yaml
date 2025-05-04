@@ -62,6 +62,23 @@ image_pipeline/buoy_detector:
       - 55
       - 255
       - 215
-image_pipeline/number_detector:
+
+image_pipeline/yolo_model:
   ros__parameters:
-    in_topic: inininin
+    engine: cuda
+    in_topic: color_enhancer/result
+    out_topic: yolo_detected
+    cuda_model_path: /home/tonelllo/ros2_ws/src/image_pipeline/yolo_model/models/best.onnx
+    classes:
+      - Damaged_pipe
+      - number1,
+      - number2
+      - number3
+      - number4
+      - red_b_number_3
+      - red_b_number_4
+      - red_b_number_5
+      - red_b_number_6
+      - red_bouy
+      - white_bouy
+      - yellow_bouy

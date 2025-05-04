@@ -36,7 +36,7 @@ class VideoPublisher(Node):
         self.publisher = self.create_publisher(Image, 'fake_video', 10)
 
         self.img = cv2.imread(
-            '/home/tonelllo/ros2_ws/src/image_pipeline/media/test/pipe.png')
+            '/home/tonelllo/ros2_ws/src/image_pipeline/media/test/buoys.png')
         # self.img = cv2.imread(
         #     '/home/tonelllo/ros2_ws/src/image_pipeline/media/red_buoy.png')
         # self.img = cv2.imread(
