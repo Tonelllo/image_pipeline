@@ -81,7 +81,16 @@ void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
              cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(19, 19), cv::Point(9, 9)));
   cv::findContours(mask, contours, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
   std::vector<cv::RotatedRect> minEllipse(contours.size());
+  for (size_t i = 0; i < contours.size(); i++) {
+    if (contours[i].size() > 5) {
+      minEllipse[i] = cv::fitEllipse(contours[i]);
+    }
+  }
+
   uint64 currentMaxSize = 0;
+  cv::Size2f eliAxes;
+  cv::RotatedRect maxEl;
+
   for (size_t i = 0; i < contours.size(); i++) {
     uint64 size = 0;
     cv::Mat blobMask = cv::Mat::zeros(mask.size(), CV_8UC1);
@@ -90,6 +99,7 @@ void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
     size = points.rows;
 
     if (size > currentMaxSize) {
+      eliAxes = minEllipse[i].size;
       currentMaxSize = size;
       maxPoints = points;
       cv::Moments m = cv::moments(contours[i]);
@@ -112,6 +122,7 @@ void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
       axisDir = -axisDir;
     }
     if (mShowResult_) {
+      cv::ellipse(segment, maxEl, cv::Scalar(0, 255, 0), 2);
       cv::arrowedLine(segment,
                       cv::Point2f(100, 100),
                       cv::Point2f(100, 100) + axisDir * 30,
@@ -127,6 +138,8 @@ void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
     p.direction.y = axisDir.y;
     p.position.x = center.x;
     p.position.y = center.y;
+    p.size.x = eliAxes.width;
+    p.size.y = eliAxes.height;
     p.header.stamp = now();
     mOutPub_->publish(p);
   }

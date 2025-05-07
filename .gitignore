@@ -5,3 +5,4 @@ Session.vim
 media
 .cache
 .clangd
+compile_commands.json
