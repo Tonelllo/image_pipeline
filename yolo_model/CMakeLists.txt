@@ -29,6 +29,7 @@ target_link_libraries(
   yolo_model
   rclcpp::rclcpp
   cuda_engine
+  YoloV8_TRT
   ${OpenCV_LIBRARIES}
   ${cv_bridge_TARGETS}
   ${sensor_msgs_TARGETS}

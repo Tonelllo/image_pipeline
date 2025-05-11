@@ -12,9 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #pragma once
+#include <cv_bridge/cv_bridge.h>
+#include <memory>
+#include <string>
+#include <vector>
+#include "tensorrt_engine/yolov8.h"
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
-#include <cv_bridge/cv_bridge.h>
 #include <cuda_engine/inference.hpp>
 
 namespace ai {
@@ -32,5 +36,8 @@ private:
   rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr mOutPub_;
   cv_bridge::CvImagePtr mCvPtr_;
   std::unique_ptr<Inference> inf;
+  YoloV8Config mConfig_;
+  std::string mTrtModelPath_;
+  std::unique_ptr<YoloV8> mYolo_;
 };
 }  // namespace ai

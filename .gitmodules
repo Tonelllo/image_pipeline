@@ -1,0 +1,3 @@
+[submodule "yolo_model/libs/tensorrt-cpp-api"]
+	path = yolo_model/libs/tensorrt-cpp-api
+	url = git@github.com:Tonelllo/tensorrt-cpp-api.git
