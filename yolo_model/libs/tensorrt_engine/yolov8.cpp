@@ -1,10 +1,22 @@
 #include "yolov8.h"
+#include <memory>
+#include <string>
+#include <vector>
 #include <opencv2/cudaimgproc.hpp>
 
-YoloV8::YoloV8(const std::string &onnxModelPath, const std::string &trtModelPath, const YoloV8Config &config)
-  : PROBABILITY_THRESHOLD(config.probabilityThreshold), NMS_THRESHOLD(config.nmsThreshold), TOP_K(config.topK),
-  SEG_CHANNELS(config.segChannels), SEG_H(config.segH), SEG_W(config.segW), SEGMENTATION_THRESHOLD(config.segmentationThreshold),
-  CLASS_NAMES(config.classNames), NUM_KPS(config.numKPS), KPS_THRESHOLD(config.kpsThreshold) {
+YoloV8::YoloV8(const std::string &onnxModelPath,
+               const std::string &trtModelPath,
+               const YoloV8Config &config)
+  : PROBABILITY_THRESHOLD(config.probabilityThreshold),
+  NMS_THRESHOLD(config.nmsThreshold),
+  TOP_K(config.topK),
+  SEG_CHANNELS(config.segChannels),
+  SEG_H(config.segH),
+  SEG_W(config.segW),
+  SEGMENTATION_THRESHOLD(config.segmentationThreshold),
+  CLASS_NAMES(config.classNames),
+  NUM_KPS(config.numKPS),
+  KPS_THRESHOLD(config.kpsThreshold) {
   // Specify options for GPU inference
   Options options;
   options.optBatchSize = 1;
@@ -22,8 +34,10 @@ YoloV8::YoloV8(const std::string &onnxModelPath, const std::string &trtModelPath
   // Create our TensorRT inference engine
   m_trtEngine = std::make_unique<Engine<float>>(options);
 
-  // Build the onnx model into a TensorRT engine file, cache the file to disk, and then load the TensorRT engine file into memory.
-  // If the engine file already exists on disk, this function will not rebuild but only load into memory.
+  // Build the onnx model into a TensorRT engine file,
+  // cache the file to disk, and then load the TensorRT engine file into memory.
+  // If the engine file already exists on disk,
+  // this function will not rebuild but only load into memory.
   // The engine file is rebuilt any time the above Options are changed.
   if (!onnxModelPath.empty()) {
     // Build the ONNX model into a TensorRT engine file
@@ -417,8 +431,10 @@ void YoloV8::drawObjectLabels(cv::Mat &image, const std::vector<Object> &objects
     cv::Mat mask = image.clone();
     for (const auto &object : objects) {
       // Choose the color
-      int colorIndex = object.label % COLOR_LIST.size();       // We have only defined 80 unique colors
-      cv::Scalar color = cv::Scalar(COLOR_LIST[colorIndex][0], COLOR_LIST[colorIndex][1], COLOR_LIST[colorIndex][2]);
+      int colorIndex = object.label % COLOR_LIST.size();  // We have only defined 80 unique colors
+      cv::Scalar color = cv::Scalar(COLOR_LIST[colorIndex][0],
+                                    COLOR_LIST[colorIndex][1],
+                                    COLOR_LIST[colorIndex][2]);
 
       // Add the mask for said object
       mask(object.rect).setTo(color * 255, object.boxMask);
@@ -431,7 +447,9 @@ void YoloV8::drawObjectLabels(cv::Mat &image, const std::vector<Object> &objects
   for (auto &object : objects) {
     // Choose the color
     int colorIndex = object.label % COLOR_LIST.size();     // We have only defined 80 unique colors
-    cv::Scalar color = cv::Scalar(COLOR_LIST[colorIndex][0], COLOR_LIST[colorIndex][1], COLOR_LIST[colorIndex][2]);
+    cv::Scalar color = cv::Scalar(COLOR_LIST[colorIndex][0],
+                                  COLOR_LIST[colorIndex][1],
+                                  COLOR_LIST[colorIndex][2]);
     float meanColor = cv::mean(color)[0];
     cv::Scalar txtColor;
     if (meanColor > 0.5) {
@@ -447,7 +465,8 @@ void YoloV8::drawObjectLabels(cv::Mat &image, const std::vector<Object> &objects
     sprintf(text, "%s %.1f%%", CLASS_NAMES[object.label].c_str(), object.probability * 100);
 
     int baseLine = 0;
-    cv::Size labelSize = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 0.35 * scale, scale, &baseLine);
+    cv::Size labelSize = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX,
+                                         0.35 * scale, scale, &baseLine);
 
     cv::Scalar txt_bk_color = color * 0.7 * 255;
 
@@ -456,9 +475,12 @@ void YoloV8::drawObjectLabels(cv::Mat &image, const std::vector<Object> &objects
 
     cv::rectangle(image, rect, color * 255, scale + 1);
 
-    cv::rectangle(image, cv::Rect(cv::Point(x, y), cv::Size(labelSize.width, labelSize.height + baseLine)), txt_bk_color, -1);
+    cv::rectangle(image, cv::Rect(cv::Point(x, y), cv::Size(labelSize.width,
+                                                            labelSize.height + baseLine)),
+                  txt_bk_color, -1);
 
-    cv::putText(image, text, cv::Point(x, y + labelSize.height), cv::FONT_HERSHEY_SIMPLEX, 0.35 * scale, txtColor, scale);
+    cv::putText(image, text, cv::Point(x, y + labelSize.height), cv::FONT_HERSHEY_SIMPLEX,
+                0.35 * scale, txtColor, scale);
 
     // Pose estimation
     if (!object.kps.empty()) {
@@ -484,7 +506,9 @@ void YoloV8::drawObjectLabels(cv::Mat &image, const std::vector<Object> &objects
         float pos2S = kps[(ske[1] - 1) * 3 + 2];
 
         if (pos1S > KPS_THRESHOLD && pos2S > KPS_THRESHOLD) {
-          cv::Scalar limbColor = cv::Scalar(LIMB_COLORS[k][0], LIMB_COLORS[k][1], LIMB_COLORS[k][2]);
+          cv::Scalar limbColor = cv::Scalar(LIMB_COLORS[k][0],
+                                            LIMB_COLORS[k][1],
+                                            LIMB_COLORS[k][2]);
           cv::line(image, {pos1X, pos1Y}, {pos2X, pos2Y}, limbColor, 2);
         }
       }
