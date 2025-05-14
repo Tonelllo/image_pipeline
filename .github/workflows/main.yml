@@ -16,7 +16,7 @@ jobs:
       - name: Install git
         run: |
            apt update
-           apt install git
+           apt install git -y
       - name: Checkout repo with submodules
         uses: actions/checkout@v2
         with:
