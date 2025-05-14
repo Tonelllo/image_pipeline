@@ -49,6 +49,16 @@ def generate_launch_description():
         parameters=[LaunchConfiguration('param_file')]
     )
 
+    yolo_model = Node(
+        package='image_pipeline_yolo_model',
+        executable='yolo_model',
+        name='yolo_model',
+        output='screen',
+        parameters=[
+            LaunchConfiguration('param_file')
+        ]
+    )
+
     return LaunchDescription([
         DeclareLaunchArgument(
             'param_file',
@@ -56,5 +66,6 @@ def generate_launch_description():
             description='Path to parameter file'),
         color_enhancer,
         pipe_detector,
-        buoy_detector
+        buoy_detector,
+        yolo_model
     ])
