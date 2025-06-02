@@ -16,6 +16,7 @@
 #include <memory>
 #include <opencv2/imgproc.hpp>
 #include <yolo_model/yolo_model.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 
 namespace ai {
 YoloModel::YoloModel()
@@ -35,7 +36,13 @@ YoloModel::YoloModel()
   mInSub_ = create_subscription<sensor_msgs::msg::Image>(
     mInTopic_, 10,
     std::bind(&YoloModel::processFrame, this, std::placeholders::_1));
-  mOutPub_ = create_publisher<sensor_msgs::msg::Image>(mOutTopic_, 10);
+  mOutPub_.reset(
+    new realtime_tools::RealtimePublisher<sensor_msgs::msg::Image>(
+      create_publisher<sensor_msgs::msg::Image>(
+        mOutTopic_, 1
+      )
+    )
+  );
   inf = std::make_unique<Inference>(mModelPath_, cv::Size(640, 640), mClasses_, true);
   mConfig_.classNames = mClasses_;
   mYolo_ = std::make_unique<YoloV8>(mModelPath_, mTrtModelPath_, mConfig_);
@@ -81,13 +88,11 @@ void YoloModel::processFrame(sensor_msgs::msg::Image::SharedPtr img){
     mYolo_->drawObjectLabels(frame, objects);
   }
   mCvPtr_->image = frame;
-  mOutPub_->publish(*mCvPtr_->toImageMsg());
+  if (mOutPub_->trylock()){
+    mOutPub_->msg_ = *mCvPtr_->toImageMsg();
+    mResPub->unlockAndPublish();
+  }
 }
 }  // namespace ai
-int main(int argc, char * argv[]){
-  rclcpp::init(argc, argv);
-  auto node = std::make_shared<ai::YoloModel>();
-  rclcpp::spin(node);
-  rclcpp::shutdown();
-  return 0;
-}
+
+RCLCPP_COMPONENTS_REGISTER_NODE(image_pipeline::YoloModel)

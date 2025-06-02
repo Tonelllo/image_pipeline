@@ -25,39 +25,52 @@ find_package(std_srvs REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(image_pipeline_msgs REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(realtime_tools REQUIRED)
 
-add_executable(buoy_detector
+add_library(buoy_detector_component
 src/buoy_detector.cpp)
 
-target_link_libraries(
-  buoy_detector
+target_link_libraries(buoy_detector_component PUBLIC
+  rclcpp_components::component
   rclcpp::rclcpp
+  realtime_tools::realtime_tools
   ${OpenCV_LIBRARIES}
   ${cv_bridge_TARGETS}
   ${sensor_msgs_TARGETS}
   ${image_pipeline_msgs_TARGETS}
 )
 
-target_include_directories(buoy_detector PUBLIC
+target_include_directories(buoy_detector_component PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
-install(TARGETS buoy_detector
-  DESTINATION lib/${PROJECT_NAME})
 
-install(DIRECTORY
-    include
-    DESTINATION share/${PROJECT_NAME}/
+ament_export_targets(export_buoy_detector_component)
+install(
+  TARGETS buoy_detector_component
+  EXPORT export_buoy_detector_component
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 ament_target_dependencies(
-  buoy_detector
+  buoy_detector_component
 
   OpenCV
   cv_bridge
   sensor_msgs
   image_pipeline_msgs
   std_srvs
+  rclcpp_components
+  realtime_tools
+)
+
+rclcpp_components_register_node(
+  buoy_detector_component
+  PLUGIN "image_pipeline::BuoyDetector"
+  EXECUTABLE buoy_detector
 )
 
 if(BUILD_TESTING)

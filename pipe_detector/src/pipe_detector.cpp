@@ -17,6 +17,7 @@
 #include <opencv2/core/types.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 
 namespace underwaterEnhancer
 {
@@ -48,7 +49,13 @@ PipeDetector::PipeDetector()
   mInSub_ = create_subscription<sensor_msgs::msg::Image>(
     mInTopic_, 10,
     std::bind(&PipeDetector::getFrame, this, std::placeholders::_1));
-  mOutPub_ = create_publisher<image_pipeline_msgs::msg::PipeDirection>(mOutTopic_, 10);
+  mOutPub_.reset(
+    new realtime_tools::RealtimePublisher<image_pipeline_msgs::msg::PipeDirection>(
+      create_publisher<image_pipeline_msgs::msg::PipeDirection>(
+        mOutTopic_, 1
+      )
+    )
+  );
 }
 
 void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
@@ -141,16 +148,12 @@ void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
     p.size.x = eliAxes.width;
     p.size.y = eliAxes.height;
     p.header.stamp = now();
-    mOutPub_->publish(p);
+    if (mOutPub_->trylock()){
+      mResPub_->msg_ = p;
+      mResPub_->unlockAndPublish();
+    }
   }
 }
-}  // namespace underwaterEnhancer
+} // namespace underwaterEnhancer
 
-int main(int argc, char * argv[])
-{
-  rclcpp::init(argc, argv);
-  auto node = std::make_shared<underwaterEnhancer::PipeDetector>();
-  rclcpp::spin(node);
-  rclcpp::shutdown();
-  return 0;
-}
+RCLCPP_COMPONENTS_REGISTER_NODE(image_pipeline::PipeDetector)

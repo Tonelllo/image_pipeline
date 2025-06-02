@@ -23,6 +23,7 @@
 #include <sensor_msgs/msg/detail/image__struct.hpp>
 #include <image_pipeline_msgs/msg/buoy_position_array.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include "realtime_tools/realtime_publisher.hpp"
 
 namespace underwaterEnhancer
 {
@@ -47,7 +48,7 @@ private:
   std::vector<std::vector<int64_t>> mBuoysParams_;
   std::array<std::string, 5> mBuoysNames_;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr mInSub_;
-  rclcpp::Publisher<image_pipeline_msgs::msg::BuoyPositionArray>::SharedPtr mBuoysPub_;
+  rclcpp::unique_ptr<realtime_tools::RealtimePublisher<image_pipeline_msgs::msg::BuoyPositionArray>> mBuoysPub_;
   cv_bridge::CvImagePtr mCvPtr_;
   cv::Mat mCurrentFrame_;
   cv::Ptr<cv::SimpleBlobDetector> mSbd_;

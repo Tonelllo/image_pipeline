@@ -24,40 +24,52 @@ find_package(sensor_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(realtime_tools REQUIRED)
 
-add_executable(color_enhancer 
+add_library(color_enhancer_component
 src/color_enhancer.cpp)
 
 target_link_libraries(
-  color_enhancer
+  color_enhancer_component
   simpleEnhancer
   udcp
   rclcpp::rclcpp
+  rclcpp_components::component
+  realtime_tools::realtime_tools
   ${OpenCV_LIBRARIES}
   ${cv_bridge_TARGETS}
   ${sensor_msgs_TARGETS}
   ${std_srvs_TARGETS}
 )
 
-target_include_directories(color_enhancer PUBLIC
+target_include_directories(color_enhancer_component PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
-install(TARGETS color_enhancer
-  DESTINATION lib/${PROJECT_NAME})
-
-install(DIRECTORY
-    include
-    DESTINATION share/${PROJECT_NAME}/
+ament_export_targets(export_color_enhancer_component)
+install(
+  TARGETS color_enhancer_component
+  EXPORT export_color_enhancer_component
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 ament_target_dependencies(
-  color_enhancer
+  color_enhancer_component
 
   OpenCV
   cv_bridge
   sensor_msgs
   std_srvs
+  rclcpp_components
+)
+
+rclcpp_components_register_node(
+  color_enhancer_component
+  PLUGIN "image_pipeline::ColorEnhancer"
+  EXECUTABLE color_enhancer
 )
 
 if(BUILD_TESTING)

@@ -16,6 +16,7 @@
 #include <opencv2/imgproc/types_c.h>
 #include <opencv2/highgui.hpp>
 #include <color_enhancer/color_enhancer.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 
 namespace underwaterEnhancer
 {
@@ -36,7 +37,14 @@ ColorEnhancer::ColorEnhancer()
   mSeAvg_ = std::make_unique<SimpleEnhancer>(false, SimpleEnhancer::fusionMode_::AVG);
   mSePca_ = std::make_unique<SimpleEnhancer>(false, SimpleEnhancer::fusionMode_::PCA);
 
-  mResPub_ = create_publisher<sensor_msgs::msg::Image>(mOutTopic_, 10);
+  mResPub_.reset(
+    new realtime_tools::RealtimePublisher<sensor_msgs::msg::Image>(
+      create_publisher<sensor_msgs::msg::Image>(
+        mOutTopic_, 1
+      )
+    )
+  );
+
   mInSub_ =
     create_subscription<sensor_msgs::msg::Image>(
       mInTopic_, 10,
@@ -67,16 +75,13 @@ void ColorEnhancer::processImage(sensor_msgs::msg::Image::SharedPtr img)
     cv::waitKey(10);
   }
   mEnhanced_.convertTo(mEnhanced_, CV_8UC3, 255);
+
   mCvPtr_->image = mEnhanced_;
-  mResPub_->publish(*mCvPtr_->toImageMsg());
+  if (mResPub_->trylock()){
+    mResPub_->msg_ = *mCvPtr_->toImageMsg();
+    mResPub->unlockAndPublish();
+  }
 }
 }  // namespace underwaterEnhancer
 
-int main(int argc, char * argv[])
-{
-  rclcpp::init(argc, argv);
-  auto node = std::make_shared<underwaterEnhancer::ColorEnhancer>();
-  rclcpp::spin(node);
-  rclcpp::shutdown();
-  return 0;
-}
+RCLCPP_COMPONENTS_REGISTER_NODE(image_pipeline::ColorEnhancer)

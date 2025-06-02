@@ -27,6 +27,7 @@
 #include <std_srvs/srv/empty.hpp>
 #include "simpleEnhancer/simpleEnhancer.hpp"
 #include "udcp/udcp.hpp"
+#include "realtime_tools/realtime_publisher.hpp"
 
 #include <rclcpp/rclcpp.hpp>
 
@@ -43,7 +44,7 @@ private:
   std::string mAlgoritm_;
   cv_bridge::CvImagePtr mCvPtr_;
   cv::Mat mCurrentFrame_;
-  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr mResPub_;
+  rclcpp::unique_ptr<realtime_tools::RealtimePublisher<sensor_msgs::msg::Image>> mResPub_;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr mInSub_;
   void processImage(sensor_msgs::msg::Image::SharedPtr);
   bool mShowResult_;

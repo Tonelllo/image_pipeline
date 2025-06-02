@@ -20,6 +20,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <cuda_engine/inference.hpp>
+#include "realtime_tools/realtime_publisher.hpp"
 
 namespace ai {
 class YoloModel : public rclcpp::Node {
@@ -33,7 +34,7 @@ private:
   std::vector<std::string> mClasses_;
   void processFrame(sensor_msgs::msg::Image::SharedPtr);
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr mInSub_;
-  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr mOutPub_;
+  rclcpp::unique_ptr<realtime_tools::RealtimePublisher<sensor_msgs::msg::Image>> mOutPub_;
   cv_bridge::CvImagePtr mCvPtr_;
   std::unique_ptr<Inference> inf;
   YoloV8Config mConfig_;

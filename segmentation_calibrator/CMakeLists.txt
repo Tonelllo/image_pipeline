@@ -31,6 +31,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
+find_package(realtime_tools REQUIRED)
 
 add_executable(segmentation_calibrator 
 src/segmentation_calibrator.cpp)
@@ -39,6 +40,7 @@ target_link_libraries(
   segmentation_calibrator
   rclcpp::rclcpp
   yaml-cpp::yaml-cpp
+  realtime_tools::realtime_tools
   ${OpenCV_LIBRARIES}
   ${cv_bridge_TARGETS}
   ${sensor_msgs_TARGETS}
@@ -62,6 +64,7 @@ ament_target_dependencies(
   OpenCV
   cv_bridge
   sensor_msgs
+  realtime_tools
   std_srvs
 )
 
