@@ -31,41 +31,49 @@ find_package(sensor_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
+find_package(rclcpp_components REQUIRED)
 find_package(realtime_tools REQUIRED)
 
-add_executable(segmentation_calibrator 
+add_library(segmentation_calibrator_component SHARED
 src/segmentation_calibrator.cpp)
 
-target_link_libraries(
-  segmentation_calibrator
+target_link_libraries(segmentation_calibrator_component PUBLIC
   rclcpp::rclcpp
   yaml-cpp::yaml-cpp
   realtime_tools::realtime_tools
+  rclcpp_components::component
   ${OpenCV_LIBRARIES}
   ${cv_bridge_TARGETS}
   ${sensor_msgs_TARGETS}
 )
 
-target_include_directories(segmentation_calibrator PUBLIC
+target_include_directories(segmentation_calibrator_component PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
-install(TARGETS segmentation_calibrator
-  DESTINATION lib/${PROJECT_NAME})
 
-install(DIRECTORY
-    include
-    DESTINATION share/${PROJECT_NAME}/
+ament_export_targets(export_segmentation_calibrator_component)
+install(
+  TARGETS segmentation_calibrator_component
+  EXPORT export_segmentation_calibrator_component
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
-ament_target_dependencies(
-  segmentation_calibrator
-
+ament_export_dependencies(
   OpenCV
   cv_bridge
   sensor_msgs
   realtime_tools
+  rclcpp_components
   std_srvs
+)
+
+rclcpp_components_register_node(
+  segmentation_calibrator_component
+  PLUGIN "image_pipeline::SegmentationCalibrator"
+  EXECUTABLE pipe_detector
 )
 
 if(BUILD_TESTING)

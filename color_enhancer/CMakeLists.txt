@@ -30,8 +30,7 @@ find_package(realtime_tools REQUIRED)
 add_library(color_enhancer_component
 src/color_enhancer.cpp)
 
-target_link_libraries(
-  color_enhancer_component
+target_link_libraries(color_enhancer_component PUBLIC
   simpleEnhancer
   udcp
   rclcpp::rclcpp
@@ -56,14 +55,13 @@ install(
   RUNTIME DESTINATION bin
 )
 
-ament_target_dependencies(
-  color_enhancer_component
-
+ament_export_dependencies(
   OpenCV
   cv_bridge
   sensor_msgs
   std_srvs
   rclcpp_components
+  realtime_tools
 )
 
 rclcpp_components_register_node(

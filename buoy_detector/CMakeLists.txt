@@ -55,9 +55,7 @@ install(
   RUNTIME DESTINATION bin
 )
 
-ament_target_dependencies(
-  buoy_detector_component
-
+ament_export_dependencies(
   OpenCV
   cv_bridge
   sensor_msgs

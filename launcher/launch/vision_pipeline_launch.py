@@ -16,7 +16,7 @@ from launch_ros.substitutions import FindPackageShare
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch import LaunchDescription
-from launch_ros.actions import Node
+from launch_ros.actions import ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
 import os
 
@@ -72,7 +72,7 @@ def generate_launch_description():
             'param_file',
             default_value=params_path,
             description='Path to parameter file'),
-        CompsoableNodeContainer(
+        ComposableNodeContainer(
             name='main_container',
             namespace='image_pipeline',
             package='component_container',

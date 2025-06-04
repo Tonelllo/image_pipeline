@@ -21,6 +21,8 @@ Clone this repo inside the src folder of your workspace
 # NOTES
 This repo must be built with `--symlink-install`
 
+This repo needs `ros-<version>-realtime-tools`
+
 Tested with:
 - Nvidia driver: `570.133.07`
 - Cuda version: `12.8`

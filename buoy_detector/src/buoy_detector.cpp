@@ -19,10 +19,10 @@
 #include <opencv2/imgproc.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 
-namespace underwaterEnhancer
+namespace image_pipeline
 {
-BuoyDetector::BuoyDetector()
-: Node("buoy_detector", "/image_pipeline")
+BuoyDetector::BuoyDetector(const rclcpp::NodeOptions & options)
+: Node("buoy_detector", options)
 {
   declare_parameter("in_topic", "UNSET");
   declare_parameter("out_topic", "UNSET");
@@ -60,7 +60,7 @@ BuoyDetector::BuoyDetector()
         mOutTopic_, 1
       )
     )
-  )
+  );
 
   mBuoysParams_.push_back(mRedBuoy_);
   mBuoysParams_.push_back(mWhiteBuoy_);
@@ -165,12 +165,15 @@ void BuoyDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
     ret.buoys.push_back(bp);
   }
   ret.header.stamp = now();
-  mBuoysPub_->publish(ret);
+  if(mBuoysPub_->trylock()){
+    mBuoysPub_->msg_ = ret;
+    mBuoysPub_->unlockAndPublish();
+  }
   if (mShowResult_) {
     cv::imshow("buoy detection result", out);
     cv::waitKey(100);
   }
 }
-}  // namespace underwaterEnhancer
+}  // namespace image_pipeline
 
 RCLCPP_COMPONENTS_REGISTER_NODE(image_pipeline::BuoyDetector)

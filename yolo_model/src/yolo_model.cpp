@@ -18,9 +18,9 @@
 #include <yolo_model/yolo_model.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 
-namespace ai {
-YoloModel::YoloModel()
-  : Node("yolo_model", "/image_pipeline"){
+namespace image_pipeline {
+YoloModel::YoloModel(const rclcpp::NodeOptions & options)
+  : Node("yolo_model", options){
   declare_parameter("engine", "UNSET");  // cuda, tensorrt
   declare_parameter("in_topic", "UNSET");
   declare_parameter("out_topic", "UNSET");
@@ -74,12 +74,14 @@ void YoloModel::processFrame(sensor_msgs::msg::Image::SharedPtr img){
       cv::rectangle(frame, box, color, 2);
 
       // Detection box text
-      std::string classString = detection.className + ' ' + std::to_string(detection.confidence).substr(0, 4);
+      std::string classString = detection.className +
+        ' ' + std::to_string(detection.confidence).substr(0, 4);
       cv::Size textSize = cv::getTextSize(classString, cv::FONT_HERSHEY_DUPLEX, 1, 2, 0);
       cv::Rect textBox(box.x, box.y - 40, textSize.width + 10, textSize.height + 20);
 
       cv::rectangle(frame, textBox, color, cv::FILLED);
-      cv::putText(frame, classString, cv::Point(box.x + 5, box.y - 10), cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(0, 0, 0), 2, 0);
+      cv::putText(frame, classString, cv::Point(box.x + 5, box.y - 10),
+                  cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(0, 0, 0), 2, 0);
     }
     cv::cvtColor(frame, frame, CV_BGR2RGB);
   } else if (mEngine_ == "tensorrt") {
@@ -90,9 +92,9 @@ void YoloModel::processFrame(sensor_msgs::msg::Image::SharedPtr img){
   mCvPtr_->image = frame;
   if (mOutPub_->trylock()){
     mOutPub_->msg_ = *mCvPtr_->toImageMsg();
-    mResPub->unlockAndPublish();
+    mOutPub_->unlockAndPublish();
   }
 }
-}  // namespace ai
+}  // namespace image_pipeline
 
 RCLCPP_COMPONENTS_REGISTER_NODE(image_pipeline::YoloModel)

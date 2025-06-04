@@ -18,10 +18,10 @@
 #include <color_enhancer/color_enhancer.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 
-namespace underwaterEnhancer
+namespace image_pipeline
 {
-ColorEnhancer::ColorEnhancer()
-  : Node("color_enhancer", "/image_pipeline")
+ColorEnhancer::ColorEnhancer(const rclcpp::NodeOptions & options)
+  : Node("color_enhancer", options)
 {
   declare_parameter("in_topic", "UNSET");
   declare_parameter("out_topic", "UNSET");
@@ -79,9 +79,9 @@ void ColorEnhancer::processImage(sensor_msgs::msg::Image::SharedPtr img)
   mCvPtr_->image = mEnhanced_;
   if (mResPub_->trylock()){
     mResPub_->msg_ = *mCvPtr_->toImageMsg();
-    mResPub->unlockAndPublish();
+    mResPub_->unlockAndPublish();
   }
 }
-}  // namespace underwaterEnhancer
+}  // namespace image_pipeline
 
 RCLCPP_COMPONENTS_REGISTER_NODE(image_pipeline::ColorEnhancer)

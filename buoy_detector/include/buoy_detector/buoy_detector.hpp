@@ -17,6 +17,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 #include <opencv2/core/cvstd_wrapper.hpp>
 #include <opencv2/features2d.hpp>
@@ -25,12 +26,12 @@
 #include <rclcpp/rclcpp.hpp>
 #include "realtime_tools/realtime_publisher.hpp"
 
-namespace underwaterEnhancer
+namespace image_pipeline
 {
 class BuoyDetector : public rclcpp::Node
 {
 public:
-  BuoyDetector();
+  explicit BuoyDetector(const rclcpp::NodeOptions & options);
 
 private:
   std::string mInTopic_;
@@ -48,10 +49,11 @@ private:
   std::vector<std::vector<int64_t>> mBuoysParams_;
   std::array<std::string, 5> mBuoysNames_;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr mInSub_;
-  rclcpp::unique_ptr<realtime_tools::RealtimePublisher<image_pipeline_msgs::msg::BuoyPositionArray>> mBuoysPub_;
+  std::unique_ptr<realtime_tools::RealtimePublisher
+  <image_pipeline_msgs::msg::BuoyPositionArray>> mBuoysPub_;
   cv_bridge::CvImagePtr mCvPtr_;
   cv::Mat mCurrentFrame_;
   cv::Ptr<cv::SimpleBlobDetector> mSbd_;
   void getFrame(sensor_msgs::msg::Image::SharedPtr);
 };
-}  // namespace underwaterEnhancer
+}  // namespace image_pipeline

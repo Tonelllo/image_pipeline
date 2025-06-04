@@ -19,10 +19,10 @@
 #include <opencv2/imgproc.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 
-namespace underwaterEnhancer
+namespace image_pipeline
 {
-PipeDetector::PipeDetector()
-  : Node("pipe_detector", "/image_pipeline")
+PipeDetector::PipeDetector(const rclcpp::NodeOptions & options)
+  : Node("pipe_detector", options)
 {
   declare_parameter("in_topic", "UNSET");
   declare_parameter("out_topic", "UNSET");
@@ -149,11 +149,11 @@ void PipeDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
     p.size.y = eliAxes.height;
     p.header.stamp = now();
     if (mOutPub_->trylock()){
-      mResPub_->msg_ = p;
-      mResPub_->unlockAndPublish();
+      mOutPub_->msg_ = p;
+      mOutPub_->unlockAndPublish();
     }
   }
 }
-} // namespace underwaterEnhancer
+}  // namespace image_pipeline
 
 RCLCPP_COMPONENTS_REGISTER_NODE(image_pipeline::PipeDetector)

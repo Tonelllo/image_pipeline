@@ -52,14 +52,14 @@ install(
   RUNTIME DESTINATION bin
 )
 
-ament_target_dependencies(
-  yolo_model_component
-
+ament_export_dependencies(
   OpenCV
   cv_bridge
   sensor_msgs
   rclcpp_components
   realtime_tools
+  cuda_engine
+  YoloV8_TRT
 )
 
 rclcpp_components_register_node(

@@ -17,10 +17,10 @@
 #include <segmentation_calibrator/segmentation_calibrator.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 
-namespace underwaterEnhancer
+namespace image_pipeline
 {
-SegmentationCalibrator::SegmentationCalibrator()
-: Node("segmentation_calibrator", "/image_pipeline")
+SegmentationCalibrator::SegmentationCalibrator(const rclcpp::NodeOptions & options)
+: Node("segmentation_calibrator", options)
 {
   declare_parameter("in_topic", "UNSET");
 
@@ -133,6 +133,6 @@ void SegmentationCalibrator::saveParams()
   writer << mConfig_;
   writer.close();
 }
-}  // namespace underwaterEnhancer
+}  // namespace image_pipeline
 
 RCLCPP_COMPONENTS_REGISTER_NODE(image_pipeline::SegmentationCalibrator)

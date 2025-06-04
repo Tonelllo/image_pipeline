@@ -32,12 +32,12 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
 
-namespace underwaterEnhancer
+namespace image_pipeline
 {
 class SegmentationCalibrator : public rclcpp::Node
 {
 public:
-  SegmentationCalibrator();
+  explicit SegmentationCalibrator(const rclcpp::NodeOptions & options);
   ~SegmentationCalibrator();
 
 private:
@@ -147,4 +147,4 @@ private:
     cv::imshow("Segmentation Result", segment);
   }
 };
-}  // namespace underwaterEnhancer
+}  // namespace image_pipeline

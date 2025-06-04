@@ -13,19 +13,21 @@
 // limitations under the License.
 #pragma once
 #include <cv_bridge/cv_bridge.h>
+
 #include <memory>
 #include <string>
 #include <vector>
+
 #include "tensorrt_engine/yolov8.h"
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <cuda_engine/inference.hpp>
 #include "realtime_tools/realtime_publisher.hpp"
 
-namespace ai {
+namespace image_pipeline {
 class YoloModel : public rclcpp::Node {
 public:
-  YoloModel();
+  explicit YoloModel(const rclcpp::NodeOptions & options);
 private:
   std::string mEngine_;
   std::string mInTopic_;
@@ -34,11 +36,11 @@ private:
   std::vector<std::string> mClasses_;
   void processFrame(sensor_msgs::msg::Image::SharedPtr);
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr mInSub_;
-  rclcpp::unique_ptr<realtime_tools::RealtimePublisher<sensor_msgs::msg::Image>> mOutPub_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<sensor_msgs::msg::Image>> mOutPub_;
   cv_bridge::CvImagePtr mCvPtr_;
   std::unique_ptr<Inference> inf;
   YoloV8Config mConfig_;
   std::string mTrtModelPath_;
   std::unique_ptr<YoloV8> mYolo_;
 };
-}  // namespace ai
+}  // namespace image_pipeline
