@@ -17,3 +17,15 @@ Just remember to change the path of the file inside the script
 
 # Ros2 install instruction
 Clone this repo inside the src folder of your workspace
+
+# NOTES
+This repo must be built with `--symlink-install`
+
+Tested with:
+- Nvidia driver: `570.133.07`
+- Cuda version: `12.8`
+- tensorrt version: `10.10.0`
+- Graphics card generation: `Tesla`
+- gcc version `10`
+- g++ version `10`
+- Opencv version `4.10.0`

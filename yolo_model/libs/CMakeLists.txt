@@ -1,4 +1,4 @@
-project(underwater_images_enhancement)
+project(image_pipeline_yolo_model)
 
 # set(CMAKE_C_FLAGS -pg)
 # set(CMAKE_CXX_FLAGS -pg)
@@ -15,7 +15,7 @@ if (ENABLE_BENCHMARKS)
     add_compile_definitions(ENABLE_BENCHMARKS)
 endif()
 
-find_package(CUDA 11 REQUIRED)
+find_package(CUDA 12.8 REQUIRED)
 find_package(OpenCV 4.10.0 REQUIRED)
 
 add_subdirectory(tensorrt-cpp-api)
@@ -40,15 +40,19 @@ cuda_engine
 PUBLIC
 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../libs>)
 
-# target_include_directories(
-# tensorrt_engine
-# PUBLIC
-# $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../libs>)
+target_include_directories(
+YoloV8_TRT
+PUBLIC
+$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../libs>)
 
 target_link_libraries(
   cuda_engine
   ${OpenCV_LIBRARIES}
 )
+
+# install( TARGETS YoloV8_TRT
+#   DESTINATION lib/${PROJECT_NAME}
+# )
 
 # target_link_libraries(
 #   tensorrt_engine
