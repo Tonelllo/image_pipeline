@@ -54,7 +54,7 @@ target_include_directories(segmentation_calibrator_component PUBLIC
 
 ament_export_targets(export_segmentation_calibrator_component)
 install(
-  TARGETS segmentation_calibrator_component
+  TARGETS segmentation_calibrator_component yaml-cpp
   EXPORT export_segmentation_calibrator_component
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib

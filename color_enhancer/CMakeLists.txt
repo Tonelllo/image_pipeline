@@ -27,7 +27,7 @@ find_package(cv_bridge REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(realtime_tools REQUIRED)
 
-add_library(color_enhancer_component
+add_library(color_enhancer_component SHARED
 src/color_enhancer.cpp)
 
 target_link_libraries(color_enhancer_component PUBLIC
@@ -48,7 +48,7 @@ target_include_directories(color_enhancer_component PUBLIC
 
 ament_export_targets(export_color_enhancer_component)
 install(
-  TARGETS color_enhancer_component
+  TARGETS color_enhancer_component simpleEnhancer udcp
   EXPORT export_color_enhancer_component
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib

@@ -28,7 +28,7 @@ find_package(cv_bridge REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(realtime_tools REQUIRED)
 
-add_library(pipe_detector_component
+add_library(pipe_detector_component SHARED
   SHARED
 src/pipe_detector.cpp)
 

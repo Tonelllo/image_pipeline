@@ -13,8 +13,8 @@ set(udcp_FILES
 udcp/udcp.cpp
 udcp/udcp.hpp)
 
-add_library(simpleEnhancer ${simpleEnhancer_FILES})
-add_library(udcp ${udcp_FILES})
+add_library(simpleEnhancer SHARED ${simpleEnhancer_FILES})
+add_library(udcp SHARED ${udcp_FILES})
 
 target_include_directories(
 simpleEnhancer
@@ -34,4 +34,12 @@ target_link_libraries(
 target_link_libraries(
   udcp
   ${OpenCV_LIBRARIES}
+)
+
+install(
+  TARGETS simpleEnhancer udcp
+  EXPORT export_yolo_model_component
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )

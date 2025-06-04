@@ -28,7 +28,7 @@ find_package(image_pipeline_msgs REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(realtime_tools REQUIRED)
 
-add_library(buoy_detector_component
+add_library(buoy_detector_component SHARED
 src/buoy_detector.cpp)
 
 target_link_libraries(buoy_detector_component PUBLIC
