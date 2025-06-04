@@ -15,18 +15,20 @@
 #pragma once
 #include <cv_bridge/cv_bridge.h>
 #include <string>
+#include <memory>
 
 #include <sensor_msgs/msg/detail/image__struct.hpp>
 #include <image_pipeline_msgs/msg/pipe_direction.hpp>
 #include <std_msgs/msg/float32.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include "realtime_tools/realtime_publisher.hpp"
 
-namespace underwaterEnhancer
+namespace image_pipeline
 {
 class PipeDetector : public rclcpp::Node
 {
 public:
-  PipeDetector();
+  explicit PipeDetector(const rclcpp::NodeOptions & options);
 
 private:
   bool mFlipDirection_;
@@ -34,7 +36,8 @@ private:
   std::string mInTopic_;
   std::string mOutTopic_;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr mInSub_;
-  rclcpp::Publisher<image_pipeline_msgs::msg::PipeDirection>::SharedPtr mOutPub_;
+  std::unique_ptr<realtime_tools::RealtimePublisher
+  <image_pipeline_msgs::msg::PipeDirection>> mOutPub_;
   cv_bridge::CvImagePtr mCvPtr_;
   cv::Mat mCurrentFrame_;
   void getFrame(sensor_msgs::msg::Image::SharedPtr);
@@ -46,4 +49,4 @@ private:
   int mValMax_;
   bool mShowResult_;
 };
-}  // namespace underwaterEnhancer
+}  // namespace image_pipeline

@@ -17,11 +17,12 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 
-namespace underwaterEnhancer
+namespace image_pipeline
 {
-BuoyDetector::BuoyDetector()
-: Node("buoy_detector", "/image_pipeline")
+BuoyDetector::BuoyDetector(const rclcpp::NodeOptions & options)
+: Node("buoy_detector", options)
 {
   declare_parameter("in_topic", "UNSET");
   declare_parameter("out_topic", "UNSET");
@@ -53,7 +54,13 @@ BuoyDetector::BuoyDetector()
     mInTopic_, 10,
     std::bind(&BuoyDetector::getFrame, this, std::placeholders::_1));
 
-  mBuoysPub_ = create_publisher<image_pipeline_msgs::msg::BuoyPositionArray>(mOutTopic_, 10);
+  mBuoysPub_.reset(
+    new realtime_tools::RealtimePublisher<image_pipeline_msgs::msg::BuoyPositionArray>(
+      create_publisher<image_pipeline_msgs::msg::BuoyPositionArray>(
+        mOutTopic_, 1
+      )
+    )
+  );
 
   mBuoysParams_.push_back(mRedBuoy_);
   mBuoysParams_.push_back(mWhiteBuoy_);
@@ -158,19 +165,15 @@ void BuoyDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
     ret.buoys.push_back(bp);
   }
   ret.header.stamp = now();
-  mBuoysPub_->publish(ret);
+  if(mBuoysPub_->trylock()){
+    mBuoysPub_->msg_ = ret;
+    mBuoysPub_->unlockAndPublish();
+  }
   if (mShowResult_) {
     cv::imshow("buoy detection result", out);
     cv::waitKey(100);
   }
 }
-}  // namespace underwaterEnhancer
+}  // namespace image_pipeline
 
-int main(int argc, char * argv[])
-{
-  rclcpp::init(argc, argv);
-  auto node = std::make_shared<underwaterEnhancer::BuoyDetector>();
-  rclcpp::spin(node);
-  rclcpp::shutdown();
-  return 0;
-}
+RCLCPP_COMPONENTS_REGISTER_NODE(image_pipeline::BuoyDetector)

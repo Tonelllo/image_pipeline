@@ -25,39 +25,50 @@ find_package(std_srvs REQUIRED)
 find_package(image_pipeline_msgs REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(realtime_tools REQUIRED)
 
-add_executable(pipe_detector 
+add_library(pipe_detector_component SHARED
+  SHARED
 src/pipe_detector.cpp)
 
-target_link_libraries(
-  pipe_detector
+target_link_libraries(pipe_detector_component PUBLIC
+  rclcpp_components::component
   rclcpp::rclcpp
+  realtime_tools::realtime_tools
   ${OpenCV_LIBRARIES}
   ${cv_bridge_TARGETS}
   ${sensor_msgs_TARGETS}
   ${image_pipeline_msgs_TARGETS}
 )
 
-target_include_directories(pipe_detector PUBLIC
+target_include_directories(pipe_detector_component PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
-install(TARGETS pipe_detector
-  DESTINATION lib/${PROJECT_NAME})
-
-install(DIRECTORY
-    include
-    DESTINATION share/${PROJECT_NAME}/
+ament_export_targets(export_pipe_detector_component)
+install(
+  TARGETS pipe_detector_component
+  EXPORT export_pipe_detector_component
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
-ament_target_dependencies(
-  pipe_detector
-
+ament_export_dependencies(
   OpenCV
   cv_bridge
   sensor_msgs
   image_pipeline_msgs
   std_srvs
+  rclcpp_components
+  realtime_tools
+)
+
+rclcpp_components_register_node(
+  pipe_detector_component
+  PLUGIN "image_pipeline::PipeDetector"
+  EXECUTABLE pipe_detector
 )
 
 if(BUILD_TESTING)

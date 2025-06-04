@@ -12,50 +12,55 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from launch_ros.substitutions import FindPackageShare
+from ament_index_python.packages import get_package_share_directory
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch import LaunchDescription
-from launch_ros.actions import Node
+from launch_ros.actions import ComposableNodeContainer
+from launch_ros.descriptions import ComposableNode
 import os
 
 
 def generate_launch_description():
-    launcher_path = FindPackageShare(
-        package="image_pipeline_launcher").find("image_pipeline_launcher")
+    launcher_path = get_package_share_directory("image_pipeline_launcher")
     params_path = os.path.join(launcher_path, "params", "config.yaml")
+    param_file = LaunchConfiguration('param_file')
 
-    color_enhancer = Node(
+    color_enhancer_component = ComposableNode(
         package='image_pipeline_color_enhancer',
-        executable='color_enhancer',
+        plugin='image_pipeline::ColorEnhancer',
         name='color_enhancer',
-        output='screen',
-        parameters=[LaunchConfiguration('param_file')]
+        namespace='image_pipeline',
+        extra_arguments=[{'use_intra_process_comms': True}],
+        parameters=[param_file]
     )
 
-    pipe_detector = Node(
+    pipe_detector_component = ComposableNode(
         package='image_pipeline_pipe_detector',
-        executable='pipe_detector',
+        plugin='image_pipeline::PipeDetector',
         name='pipe_detector',
-        output='screen',
-        parameters=[LaunchConfiguration('param_file')]
+        namespace='image_pipeline',
+        extra_arguments=[{'use_intra_process_comms': True}],
+        parameters=[param_file],
     )
 
-    buoy_detector = Node(
+    buoy_detector_component = ComposableNode(
         package='image_pipeline_buoy_detector',
-        executable='buoy_detector',
+        plugin='image_pipeline::BuoyDetector',
         name='buoy_detector',
-        output='screen',
-        parameters=[LaunchConfiguration('param_file')]
+        namespace='image_pipeline',
+        extra_arguments=[{'use_intra_process_comms': True}],
+        parameters=[param_file]
     )
 
-    yolo_model = Node(
+    yolo_model_component = ComposableNode(
         package='image_pipeline_yolo_model',
-        executable='yolo_model',
+        plugin='image_pipeline::YoloModel',
         name='yolo_model',
-        output='screen',
+        namespace='image_pipeline',
+        extra_arguments=[{'use_intra_process_comms': True}],
         parameters=[
-            LaunchConfiguration('param_file')
+            param_file
         ]
     )
 
@@ -64,8 +69,16 @@ def generate_launch_description():
             'param_file',
             default_value=params_path,
             description='Path to parameter file'),
-        color_enhancer,
-        pipe_detector,
-        buoy_detector,
-        yolo_model
+        ComposableNodeContainer(
+            name='main_container',
+            namespace='image_pipeline',
+            package='rclcpp_components',
+            executable='component_container',
+            composable_node_descriptions=[
+                color_enhancer_component,   # OK
+                pipe_detector_component,    # OK
+                buoy_detector_component,    # OK
+                yolo_model_component        # OK
+            ]
+        )
     ])

@@ -22,7 +22,8 @@ add_subdirectory(tensorrt-cpp-api)
 
 add_library(YoloV8_TRT SHARED tensorrt_engine/yolov8.cpp)
 target_link_libraries(YoloV8_TRT PUBLIC tensorrt_cpp_api ${OpenCV_LIBS})
-target_include_directories(YoloV8_TRT PUBLIC libs/tensorrt-cpp-api/src)
+target_include_directories(YoloV8_TRT PUBLIC
+$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/libs/tensorrt-cpp-api/src>)
 
 set(cuda_FILES 
 cuda_engine/inference.cpp
@@ -32,7 +33,8 @@ cuda_engine/inference.hpp)
 # tensorrt_engine/src/yolov8.cpp
 # tensorrt_engine/src/yolov8.hpp)
 
-add_library(cuda_engine ${cuda_FILES})
+add_library(cuda_engine STATIC ${cuda_FILES})
+set_target_properties(cuda_engine PROPERTIES POSITION_INDEPENDENT_CODE ON)
 # add_library(tensorrt_engine ${tensorrt_FILES})
 
 target_include_directories(
@@ -48,6 +50,14 @@ $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../libs>)
 target_link_libraries(
   cuda_engine
   ${OpenCV_LIBRARIES}
+)
+
+install(
+  TARGETS cuda_engine YoloV8_TRT
+  EXPORT export_yolo_model_component
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 # install( TARGETS YoloV8_TRT

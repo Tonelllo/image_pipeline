@@ -15,11 +15,12 @@
 #include <array>
 #include <opencv2/highgui.hpp>
 #include <segmentation_calibrator/segmentation_calibrator.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 
-namespace underwaterEnhancer
+namespace image_pipeline
 {
-SegmentationCalibrator::SegmentationCalibrator()
-: Node("segmentation_calibrator", "/image_pipeline")
+SegmentationCalibrator::SegmentationCalibrator(const rclcpp::NodeOptions & options)
+: Node("segmentation_calibrator", options)
 {
   declare_parameter("in_topic", "UNSET");
 
@@ -132,13 +133,6 @@ void SegmentationCalibrator::saveParams()
   writer << mConfig_;
   writer.close();
 }
-}  // namespace underwaterEnhancer
+}  // namespace image_pipeline
 
-int main(int argc, char * argv[])
-{
-  rclcpp::init(argc, argv);
-  auto node = std::make_shared<underwaterEnhancer::SegmentationCalibrator>();
-  rclcpp::spin(node);
-  rclcpp::shutdown();
-  return 0;
-}
+RCLCPP_COMPONENTS_REGISTER_NODE(image_pipeline::SegmentationCalibrator)

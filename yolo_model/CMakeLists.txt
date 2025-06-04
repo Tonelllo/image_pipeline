@@ -21,44 +21,51 @@ find_package(rclcpp REQUIRED)
 find_package(OpenCV 4.10.0 REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(realtime_tools REQUIRED)
 
-add_executable(yolo_model 
+add_library(yolo_model_component SHARED
 src/yolo_model.cpp)
 
-target_link_libraries(
-  yolo_model
+target_link_libraries( yolo_model_component PUBLIC
+  rclcpp_components::component
   rclcpp::rclcpp
   cuda_engine
   YoloV8_TRT
+  realtime_tools::realtime_tools
   ${OpenCV_LIBRARIES}
   ${cv_bridge_TARGETS}
   ${sensor_msgs_TARGETS}
 )
 
-target_include_directories(yolo_model PUBLIC
+target_include_directories(yolo_model_component PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
   ${OpenCV_INCLUDE_DIRS})
 
-install(TARGETS yolo_model
-  DESTINATION lib/${PROJECT_NAME})
-
-install(DIRECTORY
-    include
-    DESTINATION share/${PROJECT_NAME}/
+ament_export_targets(export_yolo_model_component)
+install(
+  TARGETS yolo_model_component
+  EXPORT export_yolo_model_component
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
-install(DIRECTORY
-    models
-    DESTINATION share/${PROJECT_NAME}/
-)
-
-ament_target_dependencies(
-  yolo_model
-
+ament_export_dependencies(
   OpenCV
   cv_bridge
   sensor_msgs
+  rclcpp_components
+  realtime_tools
+  cuda_engine
+  YoloV8_TRT
+)
+
+rclcpp_components_register_node(
+  yolo_model_component
+  PLUGIN "image_pipeline::YoloModel"
+  EXECUTABLE yolo_model
 )
 
 if(BUILD_TESTING)

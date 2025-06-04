@@ -27,15 +27,16 @@
 #include <std_srvs/srv/empty.hpp>
 #include "simpleEnhancer/simpleEnhancer.hpp"
 #include "udcp/udcp.hpp"
+#include "realtime_tools/realtime_publisher.hpp"
 
 #include <rclcpp/rclcpp.hpp>
 
-namespace underwaterEnhancer
+namespace image_pipeline
 {
 class ColorEnhancer : public rclcpp::Node
 {
 public:
-  ColorEnhancer();
+  explicit ColorEnhancer(const rclcpp::NodeOptions & options);
 
 private:
   std::string mInTopic_;
@@ -43,7 +44,7 @@ private:
   std::string mAlgoritm_;
   cv_bridge::CvImagePtr mCvPtr_;
   cv::Mat mCurrentFrame_;
-  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr mResPub_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<sensor_msgs::msg::Image>> mResPub_;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr mInSub_;
   void processImage(sensor_msgs::msg::Image::SharedPtr);
   bool mShowResult_;
@@ -53,4 +54,4 @@ private:
   cv::Mat mEnhanced_;
   cv::Mat mSegmented_;
 };
-}  // namespace underwaterEnhancer
+}  // namespace image_pipeline
