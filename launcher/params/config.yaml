@@ -65,7 +65,7 @@ image_pipeline/buoy_detector:
 
 image_pipeline/yolo_model:
   ros__parameters:
-    engine: tensorrt
+    engine: cuda
     in_topic: color_enhancer/result
     out_topic: yolo_detected
     cuda_model_path: /home/tonello/ros2_ws/src/image_pipeline/yolo_model/models/model_augmented.onnx

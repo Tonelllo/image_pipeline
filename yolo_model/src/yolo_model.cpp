@@ -43,6 +43,7 @@ YoloModel::YoloModel(const rclcpp::NodeOptions & options)
       )
     )
   );
+
   inf = std::make_unique<Inference>(mModelPath_, cv::Size(640, 640), mClasses_, true);
   mConfig_.classNames = mClasses_;
   mYolo_ = std::make_unique<YoloV8>(mModelPath_, mTrtModelPath_, mConfig_);
@@ -61,7 +62,6 @@ void YoloModel::processFrame(sensor_msgs::msg::Image::SharedPtr img){
     std::vector<Detection> output = inf->runInference(frame);
 
     int detections = output.size();
-    std::cout << detections << std::endl;
 
     for (int i = 0; i < detections; ++i)
     {

@@ -7,6 +7,7 @@ Inference::Inference(const std::string &onnxModelPath, const cv::Size &modelInpu
     modelPath = onnxModelPath;
     modelShape = modelInputShape;
     cudaEnabled = runWithCuda;
+    mClasses_ = classes;
 
     loadOnnxNetwork();
 }
@@ -30,8 +31,8 @@ std::vector<Detection> Inference::runInference(const cv::Mat &input)
     int dimensions = outputs[0].size[2];
 
     bool yolov8 = true;
-    // yolov5 has an output of shape (batchSize, 25200, 85) (Num classes + box[x,y,w,h] + confidence[c])
-    // yolov8 has an output of shape (batchSize, 84,  8400) (Num classes + box[x,y,w,h])
+    // yolov5 has an output of shape (batchSize, 25200, 85) (Num mClasses_ + box[x,y,w,h] + confidence[c])
+    // yolov8 has an output of shape (batchSize, 84,  8400) (Num mClasses_ + box[x,y,w,h])
     if (dimensions > rows) // Check if the shape[2] is more than shape[1] (yolov8)
     {
         yolov8 = true;
@@ -52,8 +53,7 @@ std::vector<Detection> Inference::runInference(const cv::Mat &input)
         if (yolov8)
         {
             float *classes_scores = data+4;
-
-            cv::Mat scores(1, classes.size(), CV_32FC1, classes_scores);
+            cv::Mat scores(1, mClasses_.size(), CV_32FC1, classes_scores);
             cv::Point class_id;
             double maxClassScore;
 
@@ -86,7 +86,7 @@ std::vector<Detection> Inference::runInference(const cv::Mat &input)
             {
                 float *classes_scores = data+5;
 
-                cv::Mat scores(1, classes.size(), CV_32FC1, classes_scores);
+                cv::Mat scores(1, mClasses_.size(), CV_32FC1, classes_scores);
                 cv::Point class_id;
                 double max_class_score;
 
@@ -135,7 +135,7 @@ std::vector<Detection> Inference::runInference(const cv::Mat &input)
                                   dis(gen),
                                   dis(gen));
 
-        result.className = classes[result.class_id];
+        result.className = mClasses_[result.class_id];
         result.box = boxes[idx];
 
         detections.push_back(result);
