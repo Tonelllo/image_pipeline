@@ -14,7 +14,6 @@ Inference::Inference(const std::string &onnxModelPath, const cv::Size &modelInpu
 
 std::vector<Detection> Inference::runInference(const cv::Mat &input)
 {
-    std::cout << mClasses_.size() << std::endl;
     cv::Mat modelInput = input;
     int pad_x, pad_y;
     float scale;

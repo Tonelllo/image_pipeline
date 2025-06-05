@@ -62,7 +62,6 @@ void YoloModel::processFrame(sensor_msgs::msg::Image::SharedPtr img){
     std::vector<Detection> output = inf->runInference(frame);
 
     int detections = output.size();
-    std::cout << detections << std::endl;
 
     for (int i = 0; i < detections; ++i)
     {
