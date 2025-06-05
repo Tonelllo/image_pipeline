@@ -43,6 +43,7 @@ YoloModel::YoloModel(const rclcpp::NodeOptions & options)
       )
     )
   );
+
   inf = std::make_unique<Inference>(mModelPath_, cv::Size(640, 640), mClasses_, true);
   mConfig_.classNames = mClasses_;
   mYolo_ = std::make_unique<YoloV8>(mModelPath_, mTrtModelPath_, mConfig_);

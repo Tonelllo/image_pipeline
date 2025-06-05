@@ -61,7 +61,7 @@ def generate_launch_description():
         extra_arguments=[{'use_intra_process_comms': True}],
         parameters=[
             param_file
-        ]
+        ],
     )
 
     return LaunchDescription([
@@ -74,11 +74,13 @@ def generate_launch_description():
             namespace='image_pipeline',
             package='rclcpp_components',
             executable='component_container',
+            # prefix='kitty -e gdb --args',
             composable_node_descriptions=[
                 color_enhancer_component,   # OK
                 pipe_detector_component,    # OK
                 buoy_detector_component,    # OK
                 yolo_model_component        # OK
-            ]
+            ],
+            output='screen'
         )
     ])
