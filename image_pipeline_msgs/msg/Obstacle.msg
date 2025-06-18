@@ -1,0 +1,17 @@
+std_msgs/Header header
+int64 id
+int64 n_occlusions
+string state
+float64[] p
+float64[] x
+float64[] r0_dist
+float64[] a_dist
+float64[] r0_frag
+float64[] a_frag
+float64[] x_raw
+string class_label
+float64 class_conf
+float64 class_area
+int64 meas_id
+image_pipeline_msgs/Buoy[] buoys
+geometry_msgs/Point[] points

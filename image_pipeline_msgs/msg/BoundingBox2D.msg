@@ -1,0 +1,9 @@
+std_msgs/Header header
+int64 id
+string desc
+float64 center_x
+float64 center_y
+float64 size_x
+float64 size_y
+float64 yaw
+float64 conf

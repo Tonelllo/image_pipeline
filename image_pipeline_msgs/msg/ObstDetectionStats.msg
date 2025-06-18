@@ -1,0 +1,10 @@
+std_msgs/Header header
+string[] sensor_name
+int64[] n_boxes
+int64[] n_points
+int64[] n_dilation_points
+int64[] n_clusters
+int64[] clustering_runtime_ms
+int64[] bb_gen_runtime_ms
+int64[] box_dilation_runtime_ms
+int64[] preprocessing_runtime_ms

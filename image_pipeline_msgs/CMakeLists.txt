@@ -14,6 +14,7 @@ add_compile_options(-Wall -Wextra -Wpedantic -O3)
 
 find_package(ament_cmake REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(geographic_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
@@ -22,9 +23,21 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 "msg/BuoyPositionArray.msg"
 "msg/PipeLine.msg"
 "msg/PipeDirection.msg"
+"msg/Buoy.msg"
+"msg/Marker.msg"
+"msg/Number.msg"
+"msg/Pipe.msg"
+"msg/Obstacles.msg"
+"msg/BoundingBox2D.msg"
+"msg/BoundingBox2DArray.msg"
+"msg/Obstacle.msg"
+"msg/ObstacleArray.msg"
+"msg/ObstDetectionSettings.msg"
+"msg/ObstDetectionStats.msg"
 DEPENDENCIES
 std_msgs
-geometry_msgs)
+geometry_msgs
+geographic_msgs)
 
 ament_export_dependencies(rosidl_default_runtime)
 
