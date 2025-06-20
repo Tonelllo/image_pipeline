@@ -1,0 +1,4 @@
+std_msgs/Header header
+image_pipeline_msgs/Obstacle[] obstacles
+geographic_msgs/GeoPose geo_centroid
+geometry_msgs/Pose worldf_pose_vehiclef

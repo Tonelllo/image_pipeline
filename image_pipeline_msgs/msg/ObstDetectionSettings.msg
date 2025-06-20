@@ -1,0 +1,14 @@
+float64 spin_rate
+float64 max_msg_lag
+string output_frame
+string img_detection_model
+float64 track_dist_threshold
+int64 num_threads_for_parallel_clustering
+string[] cam_names
+std_msgs/Float64MultiArray[] cam_p
+std_msgs/Float64MultiArray[] cam_distortion
+std_msgs/Float64MultiArray[] vehiclef_orpy_camf
+string[] cam_img_topics
+string[] cam_img_topics_compressed
+int64[] cam_h
+int64[] cam_w
