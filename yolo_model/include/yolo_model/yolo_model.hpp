@@ -23,6 +23,7 @@
 #include <sensor_msgs/msg/image.hpp>
 #include <cuda_engine/inference.hpp>
 #include "realtime_tools/realtime_publisher.hpp"
+#include <image_pipeline_msgs/msg/bounding_box2_d_array.hpp>
 
 namespace image_pipeline {
 class YoloModel : public rclcpp::Node {
@@ -32,11 +33,14 @@ private:
   std::string mEngine_;
   std::string mInTopic_;
   std::string mOutTopic_;
+  std::string mOutDetectionTopic_;
   std::string mModelPath_;
   std::vector<std::string> mClasses_;
   void processFrame(sensor_msgs::msg::Image::SharedPtr);
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr mInSub_;
   std::unique_ptr<realtime_tools::RealtimePublisher<sensor_msgs::msg::Image>> mOutPub_;
+  std::unique_ptr<realtime_tools::RealtimePublisher
+  <image_pipeline_msgs::msg::BoundingBox2DArray>> mOutDetectionPub_;
   cv_bridge::CvImagePtr mCvPtr_;
   std::unique_ptr<Inference> inf;
   YoloV8Config mConfig_;

@@ -68,7 +68,8 @@ image_pipeline/yolo_model:
     engine: cuda
     in_topic: color_enhancer/result
     out_topic: yolo_detected
-    cuda_model_path: /home/tonello/ros2_ws/src/image_pipeline/yolo_model/models/model_augmented.onnx
+    out_detection: out_detection
+    cuda_model_path: /home/tonello/ros2_ws/src/image_pipeline/yolo_model/models/manipulationStation.onnx
     tensorrt_model_path: /home/tonello/ros2_ws/src/image_pipeline/yolo_model/models/
     classes:
       - "0"
@@ -84,3 +85,4 @@ image_pipeline/yolo_model:
       - "Damaged_pipe"
       - "buoy"
       - "console_red_background"
+      - "humans"
