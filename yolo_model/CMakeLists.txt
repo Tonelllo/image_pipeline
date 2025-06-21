@@ -23,11 +23,12 @@ find_package(cv_bridge REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(realtime_tools REQUIRED)
+find_package(image_pipeline_msgs REQUIRED)
 
 add_library(yolo_model_component SHARED
 src/yolo_model.cpp)
 
-target_link_libraries( yolo_model_component PUBLIC
+target_link_libraries(yolo_model_component PUBLIC
   rclcpp_components::component
   rclcpp::rclcpp
   cuda_engine
@@ -36,6 +37,7 @@ target_link_libraries( yolo_model_component PUBLIC
   ${OpenCV_LIBRARIES}
   ${cv_bridge_TARGETS}
   ${sensor_msgs_TARGETS}
+  ${image_pipeline_msgs_TARGETS}
 )
 
 target_include_directories(yolo_model_component PUBLIC
@@ -56,6 +58,7 @@ ament_export_dependencies(
   OpenCV
   cv_bridge
   sensor_msgs
+  image_pipeline_msgs
   rclcpp_components
   realtime_tools
   cuda_engine

@@ -11,12 +11,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#include <image_pipeline_msgs/msg/detail/bounding_box2_d_array__struct.hpp>
 #include <opencv2/imgproc/types_c.h>
+#include <sys/types.h>
 #include <tensorrt_engine/yolov8.h>
 #include <memory>
 #include <opencv2/imgproc.hpp>
 #include <yolo_model/yolo_model.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
+#include "image_pipeline_msgs/msg/bounding_box2_d.hpp"
+#include <image_pipeline_msgs/msg/bounding_box2_d_array.hpp>
 
 namespace image_pipeline {
 YoloModel::YoloModel(const rclcpp::NodeOptions & options)
@@ -24,12 +28,14 @@ YoloModel::YoloModel(const rclcpp::NodeOptions & options)
   declare_parameter("engine", "UNSET");  // cuda, tensorrt
   declare_parameter("in_topic", "UNSET");
   declare_parameter("out_topic", "UNSET");
+  declare_parameter("out_detection", "UNSET");
   declare_parameter("cuda_model_path", "UNSET");
   declare_parameter("tensorrt_model_path", "UNSET");
   declare_parameter("classes", std::vector<std::string>());
   mEngine_ = get_parameter("engine").as_string();
   mInTopic_ = get_parameter("in_topic").as_string();
   mOutTopic_ = get_parameter("out_topic").as_string();
+  mOutDetectionTopic_ = get_parameter("out_detection").as_string();
   mModelPath_ = get_parameter("cuda_model_path").as_string();
   mClasses_ = get_parameter("classes").get_value<std::vector<std::string>>();
   mTrtModelPath_ = get_parameter("tensorrt_model_path").as_string();
@@ -40,6 +46,14 @@ YoloModel::YoloModel(const rclcpp::NodeOptions & options)
     new realtime_tools::RealtimePublisher<sensor_msgs::msg::Image>(
       create_publisher<sensor_msgs::msg::Image>(
         mOutTopic_, 1
+      )
+    )
+  );
+
+  mOutDetectionPub_.reset(
+    new realtime_tools::RealtimePublisher<image_pipeline_msgs::msg::BoundingBox2DArray>(
+      create_publisher<image_pipeline_msgs::msg::BoundingBox2DArray>(
+        mOutDetectionTopic_, 1
       )
     )
   );
@@ -63,6 +77,7 @@ void YoloModel::processFrame(sensor_msgs::msg::Image::SharedPtr img){
 
     int detections = output.size();
 
+    image_pipeline_msgs::msg::BoundingBox2DArray bb2dArr;
     for (int i = 0; i < detections; ++i)
     {
       Detection detection = output[i];
@@ -82,6 +97,20 @@ void YoloModel::processFrame(sensor_msgs::msg::Image::SharedPtr img){
       cv::rectangle(frame, textBox, color, cv::FILLED);
       cv::putText(frame, classString, cv::Point(box.x + 5, box.y - 10),
                   cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(0, 0, 0), 2, 0);
+      image_pipeline_msgs::msg::BoundingBox2D bb2d;
+      bb2d.center_x = detection.box.x + static_cast<float>(detection.box.width) / 2;
+      bb2d.center_y = detection.box.y + static_cast<float>(detection.box.height) / 2;
+      bb2d.size_x = detection.box.width;
+      bb2d.size_y = detection.box.height;
+      bb2d.id = i;
+      bb2d.conf = detection.confidence;
+      bb2d.desc = detection.className;
+      bb2dArr.boxes.emplace_back(bb2d);
+    }
+    bb2dArr.header.stamp = now();
+    if(mOutDetectionPub_->trylock()){
+      mOutDetectionPub_->msg_ = bb2dArr;
+      mOutDetectionPub_->unlockAndPublish();
     }
     cv::cvtColor(frame, frame, CV_BGR2RGB);
   } else if (mEngine_ == "tensorrt") {
