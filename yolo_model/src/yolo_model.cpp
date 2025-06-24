@@ -14,7 +14,6 @@
 #include <image_pipeline_msgs/msg/detail/bounding_box2_d_array__struct.hpp>
 #include <opencv2/imgproc/types_c.h>
 #include <sys/types.h>
-#include <tensorrt_engine/yolov8.h>
 #include <memory>
 #include <opencv2/imgproc.hpp>
 #include <yolo_model/yolo_model.hpp>
@@ -59,8 +58,6 @@ YoloModel::YoloModel(const rclcpp::NodeOptions & options)
   );
 
   inf = std::make_unique<Inference>(mModelPath_, cv::Size(640, 640), mClasses_, true);
-  mConfig_.classNames = mClasses_;
-  mYolo_ = std::make_unique<YoloV8>(mModelPath_, mTrtModelPath_, mConfig_);
 }
 
 void YoloModel::processFrame(sensor_msgs::msg::Image::SharedPtr img){
@@ -113,10 +110,6 @@ void YoloModel::processFrame(sensor_msgs::msg::Image::SharedPtr img){
       mOutDetectionPub_->unlockAndPublish();
     }
     cv::cvtColor(frame, frame, CV_BGR2RGB);
-  } else if (mEngine_ == "tensorrt") {
-    cv::cvtColor(frame, frame, CV_BGR2RGB);
-    auto objects = mYolo_->detectObjects(frame);
-    mYolo_->drawObjectLabels(frame, objects);
   }
   mCvPtr_->image = frame;
   if (mOutPub_->trylock()){

@@ -18,7 +18,6 @@
 #include <string>
 #include <vector>
 
-#include "tensorrt_engine/yolov8.h"
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <cuda_engine/inference.hpp>
@@ -43,8 +42,6 @@ private:
   <image_pipeline_msgs::msg::BoundingBox2DArray>> mOutDetectionPub_;
   cv_bridge::CvImagePtr mCvPtr_;
   std::unique_ptr<Inference> inf;
-  YoloV8Config mConfig_;
   std::string mTrtModelPath_;
-  std::unique_ptr<YoloV8> mYolo_;
 };
 }  // namespace image_pipeline
