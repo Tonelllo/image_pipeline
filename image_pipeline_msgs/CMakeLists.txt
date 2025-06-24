@@ -35,6 +35,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 "msg/ObstDetectionSettings.msg"
 "msg/ObstDetectionStats.msg"
 "msg/ManipulationConsole.msg"
+"msg/Colors.msg"
 DEPENDENCIES
 std_msgs
 geometry_msgs
