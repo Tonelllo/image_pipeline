@@ -18,13 +18,6 @@ endif()
 find_package(CUDA 12.8 REQUIRED)
 find_package(OpenCV 4.10.0 REQUIRED)
 
-add_subdirectory(tensorrt-cpp-api)
-
-add_library(YoloV8_TRT SHARED tensorrt_engine/yolov8.cpp)
-target_link_libraries(YoloV8_TRT PUBLIC tensorrt_cpp_api ${OpenCV_LIBS})
-target_include_directories(YoloV8_TRT PUBLIC
-$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/libs/tensorrt-cpp-api/src>)
-
 set(cuda_FILES 
 cuda_engine/inference.cpp
 cuda_engine/inference.hpp)
@@ -42,18 +35,13 @@ cuda_engine
 PUBLIC
 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../libs>)
 
-target_include_directories(
-YoloV8_TRT
-PUBLIC
-$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../libs>)
-
 target_link_libraries(
   cuda_engine
   ${OpenCV_LIBRARIES}
 )
 
 install(
-  TARGETS cuda_engine YoloV8_TRT
+  TARGETS cuda_engine
   EXPORT export_yolo_model_component
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib

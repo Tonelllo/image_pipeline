@@ -14,7 +14,7 @@ endif()
 
 add_subdirectory(libs)
 
-add_compile_options(-Wall -Wextra -Wpedantic -O3)
+add_compile_options(-Wall -Wextra -Wpedantic -O3 -Wdeprecated-declarations)
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -32,7 +32,6 @@ target_link_libraries(yolo_model_component PUBLIC
   rclcpp_components::component
   rclcpp::rclcpp
   cuda_engine
-  YoloV8_TRT
   realtime_tools::realtime_tools
   ${OpenCV_LIBRARIES}
   ${cv_bridge_TARGETS}
@@ -62,7 +61,6 @@ ament_export_dependencies(
   rclcpp_components
   realtime_tools
   cuda_engine
-  YoloV8_TRT
 )
 
 rclcpp_components_register_node(
