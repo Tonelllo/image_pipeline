@@ -91,7 +91,7 @@ image_pipeline/yolo_model:
 
 image_pipeline/buoy_color:
   ros__parameters:
-    in_image_topic: /testing/sf/AUV/rgb_camera
+    in_image_topic: /sf/AUV/enhanced/rgb_camera
     in_detection_topic: /testing/dtc/annotations/sf/AUV/rgb_camera
     out_topic: object_colors
     hist_paths:
