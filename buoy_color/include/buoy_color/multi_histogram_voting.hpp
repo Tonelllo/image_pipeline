@@ -31,8 +31,14 @@ public:
   BuoyColor(const rclcpp::NodeOptions & options) : Node("color_detector", options) {
     declare_parameter("hist_paths", std::vector<std::string>());
     declare_parameter("json_file_path", "UNSET");
+    declare_parameter("in_image_topic", "UNSET");
+    declare_parameter("in_detection_topic", "UNSET");
+    declare_parameter("out_topic", "UNSET");
     const std::vector<std::string> hist_paths = get_parameter("hist_paths").as_string_array();
     const std::string json_file_path = get_parameter("json_file_path").as_string();
+    mInImageTopic_ = get_parameter("in_image_topic").as_string();
+    mInDetectionTopic_ = get_parameter("in_detection_topic").as_string();
+    mOutTopic_ = get_parameter("out_topic").as_string();
     hist_threshold_ = 0.9;
     min_votes_required_ = 2;
 
@@ -68,6 +74,9 @@ public:
   }
 
 private:
+  std::string mInImageTopic_;
+  std::string mInDetectionTopic_;
+  std::string mOutTopic_;
   void printChannelWeights() const {
     for (const auto& kv : channel_weights_) {
       std::cout << kv.first << ": [";

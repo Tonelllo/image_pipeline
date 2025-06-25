@@ -4,9 +4,9 @@ namespace image_pipeline {
 void BuoyColor::initializeROSComponents() {
   // Create subscribers for image and detected boxes
   image_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(
-    this, "/testing/sf/AUV/rgb_camera");
+    this, mInImageTopic_);
   boxes_sub_ = std::make_shared<message_filters::Subscriber<image_pipeline_msgs::msg::BoundingBox2DArray>>(
-    this, "/testing/dtc/annotations/sf/AUV/rgb_camera");
+    this, mInDetectionTopic_);
 
   // Create synchronizer
   //sync_ = std::make_shared<message_filters::Synchronizer<SyncPolicy>>(SyncPolicy(10), *image_sub_, *boxes_sub_);
@@ -15,7 +15,7 @@ void BuoyColor::initializeROSComponents() {
   _sync->registerCallback(std::bind(&BuoyColor::detectionCallback, this, std::placeholders::_1, std::placeholders::_2));
 
   // Create publisher for object colors
-  colors_pub_ = this->create_publisher<image_pipeline_msgs::msg::Colors>("/object_colors", 10);
+  colors_pub_ = this->create_publisher<image_pipeline_msgs::msg::Colors>(mOutTopic_, 10);
 }
 
 
