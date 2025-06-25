@@ -1,4 +1,5 @@
 #include "buoy_color/multi_histogram_voting.hpp"
+#include <opencv2/imgproc.hpp>
 
 namespace image_pipeline {
 void BuoyColor::initializeROSComponents() {
@@ -214,10 +215,6 @@ void BuoyColor::loadHistogramsFromFile(const std::string& path) {
 
   // Store under a unique key if needed
   std::string uniqueName = color_name;
-  int suffix = 1;
-  while (hist_data_.color_hists.count(uniqueName)) {
-    uniqueName = color_name + "_" + std::to_string(suffix++);
-  }
   hist_data_.color_hists[uniqueName] = ch;
 
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"Loaded histograms for color \"%s\" (file %s)",
@@ -320,11 +317,12 @@ std::string BuoyColor::classifyROI(const cv::Mat& roi_bgr) {
   int roi_w = hsv.cols;
   cv::Mat mask = cv::Mat::zeros(roi_h, roi_w, CV_8UC1);
   cv::Point center(roi_w / 2, roi_h / 2);
-  /*cv::circle(mask, center, radius, cv::Scalar(255), -1);
+  int radius = std::min(center.x, center.y);
+  cv::circle(mask, center, radius, cv::Scalar(255), cv::FILLED);
 
-     // Show the circular mask
-     cv::imshow("Circle Mask", mask);
-     cv::waitKey(1);*/
+   // Show the circular mask
+  // cv::imshow("Circle Mask", mask);
+  // cv::waitKey(1);
 
   // Compute query histograms with the mask
   cv::Mat q_hs2d = computeHS2DHist(hsv, mask);
@@ -358,7 +356,6 @@ std::string BuoyColor::classifyROI(const cv::Mat& roi_bgr) {
     double d_L    = compareHistogram(q_L,    ref.L);
     double d_a    = compareHistogram(q_a,    ref.a);
     double d_b    = compareHistogram(q_b,    ref.b);
-
     double total_dist = d_hs2d * w[0] + d_h1d * w[1] + d_s1d * w[2] +
                         d_v1d * w[3] + d_L * w[4] + d_a * w[5] + d_b * w[6];
 
