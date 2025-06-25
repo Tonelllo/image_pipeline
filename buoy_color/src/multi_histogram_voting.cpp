@@ -32,7 +32,9 @@ void BuoyColor::loadMultipleHistograms(const std::vector<std::string>& paths) {
   if (hist_data_.color_hists.empty()) {
     throw std::runtime_error("No histograms were loaded from any JSON.");
   }
-  std::cerr << "Total colors loaded: " << hist_data_.color_hists.size() << std::endl;
+  if (mShowDebugPrints_) {
+    std::cerr << "Total colors loaded: " << hist_data_.color_hists.size() << std::endl;
+  }
 }
 
 // Extract color name from filename "something/<color>_histograms.json"
@@ -217,8 +219,10 @@ void BuoyColor::loadHistogramsFromFile(const std::string& path) {
   std::string uniqueName = color_name;
   hist_data_.color_hists[uniqueName] = ch;
 
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"Loaded histograms for color \"%s\" (file %s)",
-              uniqueName.c_str(), path.c_str());
+  if (mShowDebugPrints_) {
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"Loaded histograms for color \"%s\" (file %s)",
+                uniqueName.c_str(), path.c_str());
+  }
 }
 
 // Build a 2D H×S histogram from a query ROI (HSV) with a circular mask
@@ -320,7 +324,7 @@ std::string BuoyColor::classifyROI(const cv::Mat& roi_bgr) {
   int radius = std::min(center.x, center.y);
   cv::circle(mask, center, radius, cv::Scalar(255), cv::FILLED);
 
-   // Show the circular mask
+  // Show the circular mask
   // cv::imshow("Circle Mask", mask);
   // cv::waitKey(1);
 
@@ -341,7 +345,9 @@ std::string BuoyColor::classifyROI(const cv::Mat& roi_bgr) {
   double min_total_dist = std::numeric_limits<double>::max();
   std::string min_dist_color;
 
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "---- Voting debug ----");
+  if (mShowDebugPrints_) {
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "---- Voting debug ----");
+  }
 
   // First pass: Compute distances and track minimum total distance
   for (const auto& kv : hist_data_.color_hists) {
@@ -392,20 +398,24 @@ std::string BuoyColor::classifyROI(const cv::Mat& roi_bgr) {
     // EXTRA VOTE: Award to color with smallest total distance
     if (color_name == min_dist_color) {
       votes += 1;
-      RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Extra vote given to " << color_name
-                                                                              << " for smallest total distance: " << min_total_dist);
+      if (mShowDebugPrints_) {
+        RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Extra vote given to " << color_name
+                                                                                << " for smallest total distance: " << min_total_dist);
+      }
     }
 
-    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Ref[" << color_name << "]: "
-                                                            << "d_hs2d=" << d_hs2d << "  "
-                                                            << "d_h1d="  << d_h1d  << "  "
-                                                            << "d_s1d="  << d_s1d  << "  "
-                                                            << "d_v1d="  << d_v1d  << "  "
-                                                            << "d_L="    << d_L    << "  "
-                                                            << "d_a="    << d_a    << "  "
-                                                            << "d_b="    << d_b    << "  "
-                                                            << "votes="  << votes  << "  "
-                                                            << "total_dist=" << (d_hs2d + d_h1d + d_s1d + d_v1d + d_L + d_a + d_b));
+    if (mShowDebugPrints_) {
+      RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Ref[" << color_name << "]: "
+                                                              << "d_hs2d=" << d_hs2d << "  "
+                                                              << "d_h1d="  << d_h1d  << "  "
+                                                              << "d_s1d="  << d_s1d  << "  "
+                                                              << "d_v1d="  << d_v1d  << "  "
+                                                              << "d_L="    << d_L    << "  "
+                                                              << "d_a="    << d_a    << "  "
+                                                              << "d_b="    << d_b    << "  "
+                                                              << "votes="  << votes  << "  "
+                                                              << "total_dist=" << (d_hs2d + d_h1d + d_s1d + d_v1d + d_L + d_a + d_b));
+    }
 
     if (votes >= min_votes_required_) {
       if (votes > best_votes) {
@@ -422,10 +432,12 @@ std::string BuoyColor::classifyROI(const cv::Mat& roi_bgr) {
           d_a    * w[5] +
           d_b    * w[6];
 
-        RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Ref[" << color_name << "] weighted_dist=" << weighted_dist
-                                                                << " (using weights " << w[0] << "," << w[1] << ","
-                                                                << w[2] << "," << w[3] << "," << w[4] << ","
-                                                                << w[5] << "," << w[6] << ")");
+        if (mShowDebugPrints_) {
+          RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Ref[" << color_name << "] weighted_dist=" << weighted_dist
+                                                                  << " (using weights " << w[0] << "," << w[1] << ","
+                                                                  << w[2] << "," << w[3] << "," << w[4] << ","
+                                                                  << w[5] << "," << w[6] << ")");
+        }
 
         if (weighted_dist < best_metric) {
           best_metric = weighted_dist;
@@ -434,9 +446,11 @@ std::string BuoyColor::classifyROI(const cv::Mat& roi_bgr) {
       }
     }
   }
-  RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Final chosen: " << best_color
-                                                                    << " (votes=" << best_votes
-                                                                    << ", metric=" << best_metric << ")");
+  if (mShowDebugPrints_) {
+    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Final chosen: " << best_color
+                                                                      << " (votes=" << best_votes
+                                                                      << ", metric=" << best_metric << ")");
+  }
 
   return best_color;
 }
@@ -456,7 +470,10 @@ std::string BuoyColor::processDetection(cv::Mat& frame_bgr, const image_pipeline
   int h  = bx.size_y;
   cv::Rect box(bx.center_x - bx.size_x/2.0, bx.center_y- bx.size_y/2.0, w, h);
 
-  std::cerr << "bx.center_x = " << bx.center_x << ", bx.center_y = " << bx.center_y << std::endl;
+
+  if (mShowDebugPrints_) {
+    std::cerr << "bx.center_x = " << bx.center_x << ", bx.center_y = " << bx.center_y << std::endl;
+  }
 
   // Clip to image bounds
   box &= cv::Rect(0, 0, frame_bgr.cols, frame_bgr.rows);
@@ -476,8 +493,10 @@ std::string BuoyColor::processDetection(cv::Mat& frame_bgr, const image_pipeline
                 cv::FONT_HERSHEY_SIMPLEX,
                 0.7, cv::Scalar(0, 255, 0), 2);
   }
-  cv::imshow("Detection Result", frame_bgr);
-  cv::waitKey(1);
+  if (mShowResults_) {
+    cv::imshow("Detection Result", frame_bgr);
+    cv::waitKey(1);
+  }
 
   return color;
 }
@@ -485,8 +504,11 @@ std::string BuoyColor::processDetection(cv::Mat& frame_bgr, const image_pipeline
 // Synchronized callback
 // Synchronized callback
 void BuoyColor::detectionCallback(const sensor_msgs::msg::Image::ConstSharedPtr &img_msg,
-                                      const image_pipeline_msgs::msg::BoundingBox2DArray::ConstSharedPtr &boxes_msg) {
-  std::cerr << "[BuoyColor::detectionCallback] Start..." << std::endl;
+                                  const image_pipeline_msgs::msg::BoundingBox2DArray::ConstSharedPtr &boxes_msg) {
+
+  if (mShowDebugPrints_) {
+    std::cerr << "[BuoyColor::detectionCallback] Start..." << std::endl;
+  }
   try {
     // Convert the ROS2 Image message to a cv::Mat
     cv::Mat frame_bgr = cv_bridge::toCvCopy(img_msg, "bgr8")->image;
@@ -497,7 +519,9 @@ void BuoyColor::detectionCallback(const sensor_msgs::msg::Image::ConstSharedPtr 
       // Process detections using the image and the constructed polygon
       auto clr = processDetection(frame_bgr, box);
       colors.emplace_back(clr);
-      std::cerr << "[BuoyColor::detectionCallback] box #" << i << " --> color is " << clr << std::endl;
+      if (mShowDebugPrints_) {
+        std::cerr << "[BuoyColor::detectionCallback] box #" << i << " --> color is " << clr << std::endl;
+      }
     }
 
     image_pipeline_msgs::msg::Colors colorsMsg;
@@ -510,6 +534,8 @@ void BuoyColor::detectionCallback(const sensor_msgs::msg::Image::ConstSharedPtr 
     RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Processing error: %s", e.what());
     std::cerr << "[BuoyColor::detectionCallback] End with error!" << std::endl;
   }
-  std::cerr << "[BuoyColor::detectionCallback] End!" << std::endl;
+  if (mShowDebugPrints_) {
+    std::cerr << "[BuoyColor::detectionCallback] End!" << std::endl;
+  }
 }
 }  // namespace image_pipeline
