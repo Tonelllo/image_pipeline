@@ -99,3 +99,5 @@ image_pipeline/buoy_color:
       - /home/tonello/ros2_ws/src/image_pipeline/buoy_color/hist/white_histograms.json
       - /home/tonello/ros2_ws/src/image_pipeline/buoy_color/hist/yellow_histograms.json
     json_file_path: /home/tonello/ros2_ws/src/image_pipeline/buoy_color/config/color_weigths.json
+    hist_threshold: 0.9
+    min_votes_required: 2

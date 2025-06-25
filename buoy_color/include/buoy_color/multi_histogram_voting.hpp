@@ -34,13 +34,17 @@ public:
     declare_parameter("in_image_topic", "UNSET");
     declare_parameter("in_detection_topic", "UNSET");
     declare_parameter("out_topic", "UNSET");
-    const std::vector<std::string> hist_paths = get_parameter("hist_paths").as_string_array();
-    const std::string json_file_path = get_parameter("json_file_path").as_string();
+    declare_parameter("hist_threshold", 0.0);
+    declare_parameter("min_votes_required", 0);
+
     mInImageTopic_ = get_parameter("in_image_topic").as_string();
     mInDetectionTopic_ = get_parameter("in_detection_topic").as_string();
     mOutTopic_ = get_parameter("out_topic").as_string();
-    hist_threshold_ = 0.9;
-    min_votes_required_ = 2;
+    hist_threshold_ = get_parameter("hist_threshold").as_double();
+    min_votes_required_ = get_parameter("min_votes_required").as_int();
+
+    const std::vector<std::string> hist_paths = get_parameter("hist_paths").as_string_array();
+    const std::string json_file_path = get_parameter("json_file_path").as_string();
 
     // 2) Load all three JSON histogram files
     loadMultipleHistograms(hist_paths);
