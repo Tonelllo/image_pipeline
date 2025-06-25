@@ -86,3 +86,11 @@ image_pipeline/yolo_model:
       - "buoy"
       - "console_red_background"
       - "humans"
+
+image_pipeline/buoy_color:
+  ros__parameters:
+    hist_paths:
+      - /home/tonello/ros2_ws/src/image_pipeline/buoy_color/hist/red_histograms.json
+      - /home/tonello/ros2_ws/src/image_pipeline/buoy_color/hist/white_histograms.json
+      - /home/tonello/ros2_ws/src/image_pipeline/buoy_color/hist/yellow_histograms.json
+    json_file_path: /home/tonello/ros2_ws/src/image_pipeline/buoy_color/config/color_weigths.json
