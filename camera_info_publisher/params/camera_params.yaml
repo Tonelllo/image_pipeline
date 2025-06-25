@@ -1,0 +1,26 @@
+image_width: 1332
+image_height: 990
+camera_name: rov_cam
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [1310.12683,    0.     ,  667.60663,
+            0.     , 1310.26644,  467.67348,
+            0.     ,    0.     ,    1.     ]
+distortion_model: plumb_bob
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [-0.074547, 0.188452, -0.001065, 0.001185, 0.000000]
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data: [1., 0., 0.,
+         0., 1., 0.,
+         0., 0., 1.]
+projection_matrix:
+  rows: 3
+  cols: 4
+  data: [1311.10108,    0.     ,  668.89274,    0.     ,
+            0.     , 1312.01514,  467.29691,    0.     ,
+            0.     ,    0.     ,    1.     ,    0.     ]

@@ -101,3 +101,10 @@ image_pipeline/buoy_color:
     json_file_path: /home/tonello/ros2_ws/src/image_pipeline/buoy_color/config/color_weigths.json
     hist_threshold: 0.9
     min_votes_required: 2
+    show_debug_prints: false
+    show_results: false
+
+image_pipeline/camera_info_publisher:
+  ros__parameters:
+    timer_period_milliseconds: 500
+    camera_info_out: /camera/camera_info
