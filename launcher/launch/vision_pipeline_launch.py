@@ -64,6 +64,17 @@ def generate_launch_description():
         ],
     )
 
+    buoy_color_component = ComposableNode(
+        package='image_pipeline_buoy_color',
+        plugin='image_pipeline::BuoyColor',
+        name='buoy_color',
+        namespace='image_pipeline',
+        extra_arguments=[{'use_intra_process_comms': True}],
+        parameters=[
+            param_file
+        ],
+    )
+
     return LaunchDescription([
         DeclareLaunchArgument(
             'param_file',
@@ -79,7 +90,8 @@ def generate_launch_description():
                 color_enhancer_component,   # OK
                 pipe_detector_component,    # OK
                 buoy_detector_component,    # OK
-                yolo_model_component        # OK
+                yolo_model_component,       # OK
+                buoy_color_component        # OK
             ],
             output='screen'
         )
