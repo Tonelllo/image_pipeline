@@ -15,7 +15,7 @@ if (ENABLE_BENCHMARKS)
     add_compile_definitions(ENABLE_BENCHMARKS)
 endif()
 
-find_package(CUDA 12.8 REQUIRED)
+find_package(CUDA 12.6 REQUIRED)
 find_package(OpenCV 4.10.0 REQUIRED)
 
 set(cuda_FILES 
