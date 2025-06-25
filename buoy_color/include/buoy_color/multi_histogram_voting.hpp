@@ -36,12 +36,16 @@ public:
     declare_parameter("out_topic", "UNSET");
     declare_parameter("hist_threshold", 0.0);
     declare_parameter("min_votes_required", 0);
+    declare_parameter("show_debug_prints", false);
+    declare_parameter("show_results", false);
 
     mInImageTopic_ = get_parameter("in_image_topic").as_string();
     mInDetectionTopic_ = get_parameter("in_detection_topic").as_string();
     mOutTopic_ = get_parameter("out_topic").as_string();
     hist_threshold_ = get_parameter("hist_threshold").as_double();
     min_votes_required_ = get_parameter("min_votes_required").as_int();
+    mShowDebugPrints_ = get_parameter("show_debug_prints").as_bool();
+    mShowResults_ = get_parameter("show_results").as_bool();
 
     const std::vector<std::string> hist_paths = get_parameter("hist_paths").as_string_array();
     const std::string json_file_path = get_parameter("json_file_path").as_string();
@@ -67,13 +71,17 @@ public:
       channel_weights_[color] = weights.get<std::vector<double>>();
     }
 
-    printChannelWeights();
+    if (mShowDebugPrints_) {
+      printChannelWeights();
+    }
 
     // 4) Initialize subscribers / synchronizer / publisher
     initializeROSComponents();
 
     // 5) Create display windows
-    cv::namedWindow("Detection Result", cv::WINDOW_NORMAL);
+    if (mShowResults_) {
+      cv::namedWindow("Detection Result", cv::WINDOW_NORMAL);
+    }
     // cv::namedWindow("Circle Mask",      cv::WINDOW_NORMAL);
   }
 
@@ -113,6 +121,8 @@ private:
 
   double hist_threshold_;
   int min_votes_required_;
+  bool mShowDebugPrints_;
+  bool mShowResults_;
   const float ROI_SCALE = 1.0f;
 
   std::shared_ptr<message_filters::Subscriber<sensor_msgs::msg::Image>> image_sub_;
