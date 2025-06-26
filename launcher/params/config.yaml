@@ -119,6 +119,12 @@ image_pipeline/camera_info_publisher:
     camera_info_out: /camera/camera_info
     heartbeat_topic: /image_pipeline/camera_info_publisher/heartbeat
 
+image_pipeline/image_getter:
+  ros__parameters:
+    heartbeat_topic: /image_pipeline/image_getter/heartbeat
+    image_topic: /camera/image_raw
+    timer_period: 30
+
 image_pipeline/watchdog:
   ros__parameters:
     timeout_milliseconds: 1000
@@ -130,4 +136,5 @@ image_pipeline/watchdog:
       - /image_pipeline/camera_info_publisher/heartbeat
       - /image_pipeline/marine_tracking_node/heartbeat
       - /image_pipeline/marine_detector_node/heartbeat
+      - /image_pipeline/image_getter/heartbeat
     out_topic: /image_pipeline/heart_beat

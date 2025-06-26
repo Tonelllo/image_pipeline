@@ -97,6 +97,17 @@ def generate_launch_description():
         ],
     )
 
+    image_getter = ComposableNode(
+        package='image_pipeline_image_getter',
+        plugin='image_pipeline::ImageGetter',
+        name='image_getter',
+        namespace='image_pipeline',
+        extra_arguments=[{'use_intra_process_comms': True}],
+        parameters=[
+            param_file
+        ],
+    )
+
     return LaunchDescription([
         DeclareLaunchArgument(
             'param_file',
@@ -115,6 +126,7 @@ def generate_launch_description():
                 yolo_model_component,
                 buoy_color_component,
                 camera_info_publisher,
+                image_getter,
                 watchdog
             ],
             output='screen'
