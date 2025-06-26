@@ -4,6 +4,7 @@
 #include <message_filters/sync_policies/approximate_time.h>
 #include <opencv2/opencv.hpp>
 #include <fstream>
+#include <rclcpp/logging.hpp>
 #include <rclcpp/node_options.hpp>
 #include <vector>
 #include <string>
@@ -21,6 +22,8 @@
 #include <geometry_msgs/msg/polygon_stamped.hpp>
 #include <image_pipeline_msgs/msg/bounding_box2_d_array.hpp>
 #include <image_pipeline_msgs/msg/colors.hpp>
+#include <realtime_tools/realtime_publisher.hpp>
+#include <std_msgs/msg/empty.hpp>
 
 using json = nlohmann::json;
 namespace image_pipeline {
@@ -38,6 +41,8 @@ public:
     declare_parameter("min_votes_required", 0);
     declare_parameter("show_debug_prints", false);
     declare_parameter("show_results", false);
+    declare_parameter("heartbeat_rate", 0);
+    declare_parameter("heartbeat_topic", "UNSET");
 
     mInImageTopic_ = get_parameter("in_image_topic").as_string();
     mInDetectionTopic_ = get_parameter("in_detection_topic").as_string();
@@ -46,6 +51,23 @@ public:
     min_votes_required_ = get_parameter("min_votes_required").as_int();
     mShowDebugPrints_ = get_parameter("show_debug_prints").as_bool();
     mShowResults_ = get_parameter("show_results").as_bool();
+    mHeartBeatTopic_ = get_parameter("heartbeat_topic").as_string();
+    mHeartBeatRate_ = get_parameter("heartbeat_rate").as_int();
+    mHeartBeatPubisher_.reset(
+      new realtime_tools::RealtimePublisher<std_msgs::msg::Empty>(
+        create_publisher<std_msgs::msg::Empty>(
+          mHeartBeatTopic_,
+          1
+          )
+        )
+      );
+    mHeartBeatTimer_ = create_wall_timer(
+      std::chrono::milliseconds(mHeartBeatRate_),
+      [this](){
+      if (mHeartBeatPubisher_->trylock()) {
+        mHeartBeatPubisher_->unlockAndPublish();
+      }
+    });
 
     const std::vector<std::string> hist_paths = get_parameter("hist_paths").as_string_array();
     const std::string json_file_path = get_parameter("json_file_path").as_string();
@@ -86,6 +108,12 @@ public:
   }
 
 private:
+  rclcpp::TimerBase::SharedPtr mHeartBeatTimer_;
+  std::string mHeartBeatTopic_;
+  int mHeartBeatRate_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<std_msgs::msg::Empty>>
+  mHeartBeatPubisher_;
+
   std::string mInImageTopic_;
   std::string mInDetectionTopic_;
   std::string mOutTopic_;

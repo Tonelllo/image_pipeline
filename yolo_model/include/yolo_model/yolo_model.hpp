@@ -23,6 +23,7 @@
 #include <cuda_engine/inference.hpp>
 #include "realtime_tools/realtime_publisher.hpp"
 #include <image_pipeline_msgs/msg/bounding_box2_d_array.hpp>
+#include <std_msgs/msg/empty.hpp>
 
 namespace image_pipeline {
 class YoloModel : public rclcpp::Node {
@@ -43,5 +44,11 @@ private:
   cv_bridge::CvImagePtr mCvPtr_;
   std::unique_ptr<Inference> inf;
   std::string mTrtModelPath_;
+
+  rclcpp::TimerBase::SharedPtr mHeartBeatTimer_;
+  std::string mHeartBeatTopic_;
+  int mHeartBeatRate_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<std_msgs::msg::Empty>>
+  mHeartBeatPubisher_;
 };
 }  // namespace image_pipeline

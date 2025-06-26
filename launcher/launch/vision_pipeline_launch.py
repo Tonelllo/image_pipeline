@@ -86,6 +86,17 @@ def generate_launch_description():
         ],
     )
 
+    watchdog = ComposableNode(
+        package='image_pipeline_watchdog',
+        plugin='image_pipeline::WatchDog',
+        name='watchdog',
+        namespace='image_pipeline',
+        extra_arguments=[{'use_intra_process_comms': True}],
+        parameters=[
+            param_file
+        ],
+    )
+
     return LaunchDescription([
         DeclareLaunchArgument(
             'param_file',
@@ -98,12 +109,13 @@ def generate_launch_description():
             executable='component_container',
             # prefix='kitty -e gdb --args',
             composable_node_descriptions=[
-                color_enhancer_component,   # OK
-                # pipe_detector_component,    # OK
-                # buoy_detector_component,    # OK
-                yolo_model_component,       # OK
-                buoy_color_component,       # OK
-                camera_info_publisher        # OK
+                color_enhancer_component,
+                # pipe_detector_component,
+                # buoy_detector_component,
+                yolo_model_component,
+                buoy_color_component,
+                camera_info_publisher,
+                watchdog
             ],
             output='screen'
         )

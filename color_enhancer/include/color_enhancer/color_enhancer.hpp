@@ -28,6 +28,7 @@
 #include "simpleEnhancer/simpleEnhancer.hpp"
 #include "udcp/udcp.hpp"
 #include "realtime_tools/realtime_publisher.hpp"
+#include <std_msgs/msg/empty.hpp>
 
 #include <rclcpp/rclcpp.hpp>
 
@@ -53,5 +54,11 @@ private:
   std::unique_ptr<SimpleEnhancer> mSePca_;
   cv::Mat mEnhanced_;
   cv::Mat mSegmented_;
+
+  rclcpp::TimerBase::SharedPtr mHeartBeatTimer_;
+  std::string mHeartBeatTopic_;
+  int mHeartBeatRate_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<std_msgs::msg::Empty>>
+  mHeartBeatPubisher_;
 };
 }  // namespace image_pipeline

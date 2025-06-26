@@ -27,11 +27,30 @@ ColorEnhancer::ColorEnhancer(const rclcpp::NodeOptions & options)
   declare_parameter("out_topic", "UNSET");
   declare_parameter("algorithm", "UNSET");
   declare_parameter("show_result", false);
+  declare_parameter("heartbeat_rate", 0);
+  declare_parameter("heartbeat_topic", "UNSET");
 
   mInTopic_ = get_parameter("in_topic").as_string();
   mOutTopic_ = get_parameter("out_topic").as_string();
   mAlgoritm_ = get_parameter("algorithm").as_string();
   mShowResult_ = get_parameter("show_result").as_bool();
+  mHeartBeatTopic_ = get_parameter("heartbeat_topic").as_string();
+  mHeartBeatRate_ = get_parameter("heartbeat_rate").as_int();
+  mHeartBeatPubisher_.reset(
+    new realtime_tools::RealtimePublisher<std_msgs::msg::Empty>(
+      create_publisher<std_msgs::msg::Empty>(
+        mHeartBeatTopic_,
+        1
+        )
+      )
+    );
+  mHeartBeatTimer_ = create_wall_timer(
+    std::chrono::milliseconds(mHeartBeatRate_),
+    [this](){
+    if (mHeartBeatPubisher_->trylock()) {
+      mHeartBeatPubisher_->unlockAndPublish();
+    }
+  });
 
   mUdcp_ = std::make_unique<UDCP>(false, 25, 1920, 1080);
   mSeAvg_ = std::make_unique<SimpleEnhancer>(false, SimpleEnhancer::fusionMode_::AVG);

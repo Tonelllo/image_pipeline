@@ -15,6 +15,7 @@
 #pragma once
 #include <cv_bridge/cv_bridge.h>
 
+#include <std_msgs/msg/empty.hpp>
 #include <string>
 #include <vector>
 #include <memory>
@@ -55,5 +56,11 @@ private:
   cv::Mat mCurrentFrame_;
   cv::Ptr<cv::SimpleBlobDetector> mSbd_;
   void getFrame(sensor_msgs::msg::Image::SharedPtr);
+
+  rclcpp::TimerBase::SharedPtr mHeartBeatTimer_;
+  std::string mHeartBeatTopic_;
+  int mHeartBeatRate_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<std_msgs::msg::Empty>>
+  mHeartBeatPubisher_;
 };
 }  // namespace image_pipeline
