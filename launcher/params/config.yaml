@@ -4,19 +4,20 @@
 
 image_pipeline/color_enhancer:
   ros__parameters:
-    in_topic: /testing/sf/AUV/rgb_camera
-    out_topic: /sf/AUV/enhanced/rgb_camera
+    in_topic: /camera/image_raw
+    out_topic: /camera/enhanced/image_raw
+
     algorithm: udcp
     heartbeat_topic: /image_pipeline/color_enhancer/heartbeat
     show_result: false
 
 image_pipeline/segmentation_calibrator:
   ros__parameters:
-    in_topic: /sf/AUV/enhanced/rgb_camera
+    in_topic: /camera/enhanced/image_raw
 
 image_pipeline/pipe_detector:
   ros__parameters:
-    in_topic: /sf/AUV/enhanced/rgb_camera
+    in_topic: /camera/enhanced/image_raw
     out_topic: pipe_direction
     heartbeat_topic: /image_pipeline/pipe_detector/heartbeat
     show_result: false
@@ -28,7 +29,7 @@ image_pipeline/pipe_detector:
     sat_max: 255
 image_pipeline/buoy_detector:
   ros__parameters:
-    in_topic: /sf/AUV/enhanced/rgb_camera
+    in_topic: /camera/enhanced/image_raw
     out_topic: buoy_detector/out
     min_buoy_radius_px: 10
     max_buoy_radius_px: 500
@@ -75,12 +76,11 @@ image_pipeline/buoy_detector:
 image_pipeline/yolo_model:
   ros__parameters:
     engine: cuda
-    in_topic: /testing/sf/AUV/rgb_camera
+    in_topic: /camera/image_raw
     out_topic: yolo_detected
-    out_detection: /testing/dtc/annotations/sf/AUV/rgb_camera
-    cuda_model_path: /home/tonello/ros2_ws/src/image_pipeline/yolo_model/models/buoy_improvement.onnx
-    tensorrt_model_path: /home/tonello/ros2_ws/src/image_pipeline/yolo_model/models/
-    heartbeat_topic: /image_pipeline/yolo_model/heartbeat
+    out_detection: /camera/yolo_detections
+    cuda_model_path: /home/jetson/ros2_ws/src/image_pipeline/yolo_model/models/manipulationStation.onnx
+    tensorrt_model_path: /home/jetson/ros2_ws/src/image_pipeline/yolo_model/models/
     classes:
       - "0"
       - "1"
@@ -98,14 +98,14 @@ image_pipeline/yolo_model:
 
 image_pipeline/buoy_color:
   ros__parameters:
-    in_image_topic: /testing/sf/AUV/rgb_camera
-    in_detection_topic: /testing/dtc/annotations/sf/AUV/rgb_camera
-    out_topic: object_colors
+    in_image_topic: /camera/image_raw
+    in_detection_topic: /camera/yolo_detections
+    out_topic: /camera/object_colors
     hist_paths:
-      - /home/tonello/ros2_ws/src/image_pipeline/buoy_color/hist/red_histograms.json
-      - /home/tonello/ros2_ws/src/image_pipeline/buoy_color/hist/white_histograms.json
-      - /home/tonello/ros2_ws/src/image_pipeline/buoy_color/hist/yellow_histograms.json
-    json_file_path: /home/tonello/ros2_ws/src/image_pipeline/buoy_color/config/color_weigths.json
+      - /home/jetson/ros2_ws/src/image_pipeline/buoy_color/hist/red_histograms.json
+      - /home/jetson/ros2_ws/src/image_pipeline/buoy_color/hist/white_histograms.json
+      - /home/jetson/ros2_ws/src/image_pipeline/buoy_color/hist/yellow_histograms.json
+    json_file_path: /home/jetson/ros2_ws/src/image_pipeline/buoy_color/config/color_weigths.json
     hist_threshold: 0.9
     min_votes_required: 2
     show_debug_prints: false
