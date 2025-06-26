@@ -19,10 +19,10 @@ WatchDog::WatchDog(const rclcpp::NodeOptions & options)
     mLatestTimestamps_.push_back(std::chrono::system_clock::now());
     mSubscribers_.emplace_back(
       create_subscription<std_msgs::msg::Empty>(subTopic, 10, [index, this](std_msgs::msg::Empty::SharedPtr msg){
-        (void) msg;
-        mLatestTimestamps_[index] = std::chrono::system_clock::now();
-      })
-    );
+      (void) msg;
+      mLatestTimestamps_[index] = std::chrono::system_clock::now();
+    })
+      );
     index++;
   }
 
@@ -42,12 +42,11 @@ WatchDog::WatchDog(const rclcpp::NodeOptions & options)
 
 void WatchDog::heartbeatPub(){
   std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
-  if(mHeartBeatPublisher_->trylock()){
-    std::all_of(mLatestTimestamps_.begin(), mLatestTimestamps_.end(), [now, this](std::chrono::time_point<std::chrono::system_clock> timestamp){
+  if (mHeartBeatPublisher_->trylock()) {
+    mHeartBeatPublisher_->msg_.data = std::all_of(mLatestTimestamps_.begin(), mLatestTimestamps_.end(), [now, this](std::chrono::time_point<std::chrono::system_clock> timestamp){
       auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - timestamp);
       return milliseconds.count() < mTimeoutMilliseconds_;
     });
-    mHeartBeatPublisher_->msg_.data = false;
     mHeartBeatPublisher_->unlockAndPublish();
   }
 }

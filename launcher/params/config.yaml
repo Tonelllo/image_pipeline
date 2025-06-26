@@ -128,4 +128,6 @@ image_pipeline/watchdog:
       - /image_pipeline/yolo_model/heartbeat
       - /image_pipeline/buoy_color/heartbeat
       - /image_pipeline/camera_info_publisher/heartbeat
+      - /image_pipeline/marine_tracking_node/heartbeat
+      - /image_pipeline/marine_detector_node/heartbeat
     out_topic: /image_pipeline/heartbeat
