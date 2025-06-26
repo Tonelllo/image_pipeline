@@ -130,4 +130,4 @@ image_pipeline/watchdog:
       - /image_pipeline/camera_info_publisher/heartbeat
       - /image_pipeline/marine_tracking_node/heartbeat
       - /image_pipeline/marine_detector_node/heartbeat
-    out_topic: /image_pipeline/heartbeat
+    out_topic: /image_pipeline/heart_beat
