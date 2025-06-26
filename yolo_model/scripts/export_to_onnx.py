@@ -2,7 +2,7 @@ from ultralytics import YOLO
 # import onnx
 
 # Load your custom-trained YOLOv8 model
-model = YOLO("../models/model_augmented.pt")  # e.g., 'runs/detect/train/weights/best.pt'
+model = YOLO("../models/manipulationStation.pt")  # e.g., 'runs/detect/train/weights/best.pt'
 
 class_names = model.names
 for class_id, name in class_names.items():

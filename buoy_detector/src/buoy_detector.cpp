@@ -22,7 +22,7 @@
 namespace image_pipeline
 {
 BuoyDetector::BuoyDetector(const rclcpp::NodeOptions & options)
-: Node("buoy_detector", options)
+  : Node("buoy_detector", options)
 {
   declare_parameter("in_topic", "UNSET");
   declare_parameter("out_topic", "UNSET");
@@ -36,6 +36,8 @@ BuoyDetector::BuoyDetector(const rclcpp::NodeOptions & options)
   declare_parameter("blob_dilation_size", 15);
   declare_parameter("blob_median_blur_size", 15);
   declare_parameter("show_result", false);
+  declare_parameter("heartbeat_rate", 0);
+  declare_parameter("heartbeat_topic", "UNSET");
 
   mInTopic_ = get_parameter("in_topic").as_string();
   mOutTopic_ = get_parameter("out_topic").as_string();
@@ -49,6 +51,23 @@ BuoyDetector::BuoyDetector(const rclcpp::NodeOptions & options)
   mBlobDilationSize_ = get_parameter("blob_dilation_size").as_int();
   mBlobMedianBlurSize_ = get_parameter("blob_median_blur_size").as_int();
   mShowResult_ = get_parameter("show_result").as_bool();
+  mHeartBeatTopic_ = get_parameter("heartbeat_topic").as_string();
+  mHeartBeatRate_ = get_parameter("heartbeat_rate").as_int();
+  mHeartBeatPubisher_.reset(
+    new realtime_tools::RealtimePublisher<std_msgs::msg::Empty>(
+      create_publisher<std_msgs::msg::Empty>(
+        mHeartBeatTopic_,
+        1
+        )
+      )
+    );
+  mHeartBeatTimer_ = create_wall_timer(
+    std::chrono::milliseconds(mHeartBeatRate_),
+    [this](){
+    if (mHeartBeatPubisher_->trylock()) {
+      mHeartBeatPubisher_->unlockAndPublish();
+    }
+  });
 
   mInSub_ = create_subscription<sensor_msgs::msg::Image>(
     mInTopic_, 10,
@@ -58,9 +77,9 @@ BuoyDetector::BuoyDetector(const rclcpp::NodeOptions & options)
     new realtime_tools::RealtimePublisher<image_pipeline_msgs::msg::BuoyPositionArray>(
       create_publisher<image_pipeline_msgs::msg::BuoyPositionArray>(
         mOutTopic_, 1
+        )
       )
-    )
-  );
+    );
 
   mBuoysParams_.push_back(mRedBuoy_);
   mBuoysParams_.push_back(mWhiteBuoy_);
@@ -127,8 +146,8 @@ void BuoyDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
     auto biggestBlob = std::ranges::max_element(
       keypoints,
       [](const cv::KeyPoint k1, const cv::KeyPoint k2) {
-        return k1.size < k2.size;
-      });
+      return k1.size < k2.size;
+    });
     if (biggestBlob == keypoints.end()) {
       continue;
     }
@@ -146,26 +165,26 @@ void BuoyDetector::getFrame(sensor_msgs::msg::Image::SharedPtr img)
     bp.position.x = biggestBlob->pt.x;
     bp.position.y = biggestBlob->pt.y;
     switch (index) {
-      case 0:
-        bp.color = image_pipeline_msgs::msg::BuoyPosition::RED;
-        break;
-      case 1:
-        bp.color = image_pipeline_msgs::msg::BuoyPosition::WHITE;
-        break;
-      case 2:
-        bp.color = image_pipeline_msgs::msg::BuoyPosition::BLACK;
-        break;
-      case 3:
-        bp.color = image_pipeline_msgs::msg::BuoyPosition::ORANGE;
-        break;
-      case 4:
-        bp.color = image_pipeline_msgs::msg::BuoyPosition::YELLOW;
-        break;
+    case 0:
+      bp.color = image_pipeline_msgs::msg::BuoyPosition::RED;
+      break;
+    case 1:
+      bp.color = image_pipeline_msgs::msg::BuoyPosition::WHITE;
+      break;
+    case 2:
+      bp.color = image_pipeline_msgs::msg::BuoyPosition::BLACK;
+      break;
+    case 3:
+      bp.color = image_pipeline_msgs::msg::BuoyPosition::ORANGE;
+      break;
+    case 4:
+      bp.color = image_pipeline_msgs::msg::BuoyPosition::YELLOW;
+      break;
     }
     ret.buoys.push_back(bp);
   }
   ret.header.stamp = now();
-  if(mBuoysPub_->trylock()){
+  if (mBuoysPub_->trylock()) {
     mBuoysPub_->msg_ = ret;
     mBuoysPub_->unlockAndPublish();
   }

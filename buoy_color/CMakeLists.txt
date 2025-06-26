@@ -24,6 +24,7 @@ find_package(nav_msgs REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(jsoncpp REQUIRED)
+find_package(realtime_tools REQUIRED)
 # find_package(nlohmann_json REQUIRED)
 find_package(image_pipeline_msgs REQUIRED)
 
@@ -51,6 +52,7 @@ target_link_libraries(buoy_color_component PUBLIC
   ${std_msgs_TARGETS}
   ${nav_msgs_TARGETS}
   ${cv_bridge_TARGETS}
+  ${realtime_tools_TARGETS}
   ${image_pipeline_msgs_TARGETS}
   nlohmann_json::nlohmann_json
 )
@@ -76,6 +78,7 @@ ament_export_dependencies(
   nav_msgs
   sensor_msgs
   cv_bridge
+  realtime_tools
   nlohmann_json
   image_pipeline_msgs
 )

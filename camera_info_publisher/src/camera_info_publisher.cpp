@@ -9,8 +9,29 @@ CameraInfoPublisher::CameraInfoPublisher(const rclcpp::NodeOptions & options)
 {
   declare_parameter("timer_period_milliseconds", 0);
   declare_parameter("camera_info_out", "UNSET");
+  declare_parameter("heartbeat_rate", 0);
+  declare_parameter("heartbeat_topic", "UNSET");
   mTimerPeriod_ = get_parameter("timer_period_milliseconds").as_int();
   mCameraInfoTopic_ = get_parameter("camera_info_out").as_string();
+
+  mHeartBeatTopic_ = get_parameter("heartbeat_topic").as_string();
+  mHeartBeatRate_ = get_parameter("heartbeat_rate").as_int();
+  mHeartBeatPubisher_.reset(
+    new realtime_tools::RealtimePublisher<std_msgs::msg::Empty>(
+      create_publisher<std_msgs::msg::Empty>(
+        mHeartBeatTopic_,
+        1
+        )
+      )
+    );
+  mHeartBeatTimer_ = create_wall_timer(
+    std::chrono::milliseconds(mHeartBeatRate_),
+    [this](){
+    if (mHeartBeatPubisher_->trylock()) {
+      mHeartBeatPubisher_->unlockAndPublish();
+    }
+  });
+
   std::filesystem::path filePath = ament_index_cpp::get_package_prefix("image_pipeline_camera_info_publisher");
   filePath = filePath / "share" / "image_pipeline_camera_info_publisher" / "params" /
              "camera_params.yaml";

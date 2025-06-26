@@ -31,6 +31,8 @@ YoloModel::YoloModel(const rclcpp::NodeOptions & options)
   declare_parameter("cuda_model_path", "UNSET");
   declare_parameter("tensorrt_model_path", "UNSET");
   declare_parameter("classes", std::vector<std::string>());
+  declare_parameter("heartbeat_rate", 0);
+  declare_parameter("heartbeat_topic", "UNSET");
   mEngine_ = get_parameter("engine").as_string();
   mInTopic_ = get_parameter("in_topic").as_string();
   mOutTopic_ = get_parameter("out_topic").as_string();
@@ -38,6 +40,23 @@ YoloModel::YoloModel(const rclcpp::NodeOptions & options)
   mModelPath_ = get_parameter("cuda_model_path").as_string();
   mClasses_ = get_parameter("classes").get_value<std::vector<std::string>>();
   mTrtModelPath_ = get_parameter("tensorrt_model_path").as_string();
+  mHeartBeatTopic_ = get_parameter("heartbeat_topic").as_string();
+  mHeartBeatRate_ = get_parameter("heartbeat_rate").as_int();
+  mHeartBeatPubisher_.reset(
+    new realtime_tools::RealtimePublisher<std_msgs::msg::Empty>(
+      create_publisher<std_msgs::msg::Empty>(
+        mHeartBeatTopic_,
+        1
+        )
+      )
+    );
+  mHeartBeatTimer_ = create_wall_timer(
+    std::chrono::milliseconds(mHeartBeatRate_),
+    [this](){
+    if (mHeartBeatPubisher_->trylock()) {
+      mHeartBeatPubisher_->unlockAndPublish();
+    }
+  });
   mInSub_ = create_subscription<sensor_msgs::msg::Image>(
     mInTopic_, 10,
     std::bind(&YoloModel::processFrame, this, std::placeholders::_1));

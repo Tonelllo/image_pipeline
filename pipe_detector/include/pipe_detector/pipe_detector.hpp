@@ -23,6 +23,8 @@
 #include <rclcpp/rclcpp.hpp>
 #include "realtime_tools/realtime_publisher.hpp"
 
+#include <std_msgs/msg/empty.hpp>
+
 namespace image_pipeline
 {
 class PipeDetector : public rclcpp::Node
@@ -48,5 +50,11 @@ private:
   int mSatMax_;
   int mValMax_;
   bool mShowResult_;
+
+  rclcpp::TimerBase::SharedPtr mHeartBeatTimer_;
+  std::string mHeartBeatTopic_;
+  int mHeartBeatRate_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<std_msgs::msg::Empty>>
+  mHeartBeatPubisher_;
 };
 }  // namespace image_pipeline

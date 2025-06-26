@@ -18,6 +18,7 @@
 
 #include <filesystem>
 #include <realtime_tools/realtime_publisher.hpp>
+#include <std_msgs/msg/empty.hpp>
 namespace image_pipeline {
 class CameraInfoPublisher : public rclcpp::Node {
 public:
@@ -30,5 +31,11 @@ private:
   mCameraInfoPublisher_;
   std::string mCameraInfoTopic_;
   void cameraInfoPublisher();
+
+  rclcpp::TimerBase::SharedPtr mHeartBeatTimer_;
+  std::string mHeartBeatTopic_;
+  int mHeartBeatRate_;
+  std::unique_ptr<realtime_tools::RealtimePublisher<std_msgs::msg::Empty>>
+  mHeartBeatPubisher_;
 };
 } //namespace image_pipeline
