@@ -78,7 +78,7 @@ image_pipeline/yolo_model:
     in_topic: /testing/sf/AUV/rgb_camera
     out_topic: yolo_detected
     out_detection: /testing/dtc/annotations/sf/AUV/rgb_camera
-    cuda_model_path: /home/tonello/ros2_ws/src/image_pipeline/yolo_model/models/manipulationStation.onnx
+    cuda_model_path: /home/tonello/ros2_ws/src/image_pipeline/yolo_model/models/buoy_improvement.onnx
     tensorrt_model_path: /home/tonello/ros2_ws/src/image_pipeline/yolo_model/models/
     heartbeat_topic: /image_pipeline/yolo_model/heartbeat
     classes:
