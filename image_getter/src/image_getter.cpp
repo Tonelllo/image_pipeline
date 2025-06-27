@@ -20,6 +20,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/videoio.hpp>
 #include <rclcpp/logging.hpp>
+#include <rclcpp/qos.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 
 namespace image_pipeline
@@ -39,7 +40,7 @@ ImageGetter::ImageGetter(const rclcpp::NodeOptions & options)
     new realtime_tools::RealtimePublisher<sensor_msgs::msg::Image>(
       create_publisher<sensor_msgs::msg::Image>(
         mImageTopic_,
-        10
+        rclcpp::SensorDataQoS()
         )
       )
     );
