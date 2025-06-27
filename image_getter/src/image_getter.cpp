@@ -30,7 +30,7 @@ ImageGetter::ImageGetter(const rclcpp::NodeOptions & options)
   declare_parameter("heartbeat_rate", 0);
   declare_parameter("heartbeat_topic", "UNSET");
   declare_parameter("image_topic", "UNSET");
-  declare_parameter("timer_period", 0.0);
+  declare_parameter("timer_period", 0);
   mHeartBeatTopic_ = get_parameter("heartbeat_topic").as_string();
   mImageTopic_ = get_parameter("image_topic").as_string();
   mHeartBeatRate_ = get_parameter("heartbeat_rate").as_int();
