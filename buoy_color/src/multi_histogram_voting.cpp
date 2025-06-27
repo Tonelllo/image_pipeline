@@ -2,13 +2,14 @@
 #include <message_filters/subscriber.h>
 #include <opencv2/imgproc.hpp>
 #include <rclcpp/qos.hpp>
+#include <rmw/types.h>
 #include <sensor_msgs/msg/detail/image__struct.hpp>
 
 namespace image_pipeline {
 void BuoyColor::initializeROSComponents() {
   // Create subscribers for image and detected boxes
-  image_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(
-    this, mInImageTopic_);
+  rmw_qos_profile_t custom_qos = rmw_qos_profile_sensor_data;
+  image_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(this, mInImageTopic_, custom_qos);
   boxes_sub_ = std::make_shared<message_filters::Subscriber<image_pipeline_msgs::msg::BoundingBox2DArray>>(
     this, mInDetectionTopic_);
 
