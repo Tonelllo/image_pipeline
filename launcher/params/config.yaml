@@ -92,7 +92,6 @@ image_pipeline/yolo_model:
       - "7"
       - "8"
       - "9"
-      - "Damaged_pipe"
       - "buoy"
       - "console_red_background"
       - "humans"
