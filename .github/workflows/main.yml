@@ -30,3 +30,11 @@ jobs:
         with:
           package-name: image_pipeline_launcher
           target-ros2-distro: humble
+          colcon-defaults: |
+            {
+              "build": {
+                 "packages-skip": [
+                   "image_pipeline_msgs"
+                 ]
+              }
+            }
