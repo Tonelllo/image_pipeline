@@ -79,7 +79,7 @@ image_pipeline/yolo_model:
     in_topic: /camera/image_raw
     out_topic: yolo_detected
     out_detection: /camera/yolo_detections
-    cuda_model_path: /home/jetson/ros2_ws/src/image_pipeline/yolo_model/models/manipulationStation.onnx
+    cuda_model_path: /home/jetson/ros2_ws/src/image_pipeline/yolo_model/models/buoy_improvement.onnx
     tensorrt_model_path: /home/jetson/ros2_ws/src/image_pipeline/yolo_model/models/
     heartbeat_topic: /image_pipeline/yolo_model/heartbeat
     classes:
