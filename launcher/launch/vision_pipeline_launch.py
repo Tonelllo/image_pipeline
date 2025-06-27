@@ -127,6 +127,15 @@ def generate_launch_description():
                 buoy_color_component,
                 camera_info_publisher,
                 image_getter,
+            ],
+            output='screen'
+        ),
+        ComposableNodeContainer(
+            name='watchdog_container',
+            namespace='image_pipeline',
+            package='rclcpp_components',
+            executable='component_container',
+            composable_node_descriptions=[
                 watchdog
             ],
             output='screen'
