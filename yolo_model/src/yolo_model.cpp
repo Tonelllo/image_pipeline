@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#include <cv_bridge/cv_bridge.h>
 #include <image_pipeline_msgs/msg/detail/bounding_box2_d_array__struct.hpp>
 #include <opencv2/imgproc/types_c.h>
 #include <rclcpp/qos.hpp>
@@ -129,7 +130,6 @@ void YoloModel::processFrame(sensor_msgs::msg::Image::SharedPtr img){
       mOutDetectionPub_->msg_ = bb2dArr;
       mOutDetectionPub_->unlockAndPublish();
     }
-    cv::cvtColor(frame, frame, CV_BGR2RGB);
   }
   mCvPtr_->image = frame;
   if (mOutPub_->trylock()){
