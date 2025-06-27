@@ -120,7 +120,7 @@ def generate_launch_description():
             executable='component_container',
             # prefix='kitty -e gdb --args',
             composable_node_descriptions=[
-                color_enhancer_component,
+                # color_enhancer_component,
                 # pipe_detector_component,
                 # buoy_detector_component,
                 yolo_model_component,
