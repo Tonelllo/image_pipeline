@@ -63,7 +63,7 @@ cv::Mat SimpleEnhancer::greyWorldAlg(cv::Mat & image)
   cv::Mat gray, out;
   double bMean, rMean, gMean, bnMean;
 
-  cv::cvtColor(image, gray, cv::COLOR_RGB2GRAY);
+  cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
   cv::split(image, channels);
 
   bMean = cv::mean(channels[BLUE])[0];
