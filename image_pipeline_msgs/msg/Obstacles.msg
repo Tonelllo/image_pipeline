@@ -5,4 +5,5 @@ image_pipeline_msgs/Number[] numbers
 image_pipeline_msgs/Pipe[] pipes
 image_pipeline_msgs/Buoy[] buoys
 image_pipeline_msgs/ManipulationConsole[] manipulation_consoles
+auv_core_helper/GenericObject[] objects
 geometry_msgs/Pose worldf_pose_vehiclef

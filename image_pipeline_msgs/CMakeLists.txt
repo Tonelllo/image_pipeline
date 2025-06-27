@@ -16,6 +16,7 @@ find_package(ament_cmake REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(geographic_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(auv_core_helper REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
@@ -39,7 +40,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 DEPENDENCIES
 std_msgs
 geometry_msgs
-geographic_msgs)
+geographic_msgs
+auv_core_helper)
 
 ament_export_dependencies(rosidl_default_runtime)
 
