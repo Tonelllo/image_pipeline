@@ -16,6 +16,7 @@
 #include <opencv2/imgproc/types_c.h>
 #include <opencv2/highgui.hpp>
 #include <color_enhancer/color_enhancer.hpp>
+#include <rclcpp/qos.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 
 namespace image_pipeline
@@ -59,14 +60,14 @@ ColorEnhancer::ColorEnhancer(const rclcpp::NodeOptions & options)
   mResPub_.reset(
     new realtime_tools::RealtimePublisher<sensor_msgs::msg::Image>(
       create_publisher<sensor_msgs::msg::Image>(
-        mOutTopic_, 1
+        mOutTopic_, rclcpp::SensorDataQoS()
+        )
       )
-    )
-  );
+    );
 
   mInSub_ =
     create_subscription<sensor_msgs::msg::Image>(
-      mInTopic_, 10,
+      mInTopic_, rclcpp::SensorDataQoS(),
       std::bind(&ColorEnhancer::processImage, this, std::placeholders::_1));
 }
 
@@ -96,7 +97,7 @@ void ColorEnhancer::processImage(sensor_msgs::msg::Image::SharedPtr img)
   mEnhanced_.convertTo(mEnhanced_, CV_8UC3, 255);
 
   mCvPtr_->image = mEnhanced_;
-  if (mResPub_->trylock()){
+  if (mResPub_->trylock()) {
     mResPub_->msg_ = *mCvPtr_->toImageMsg();
     mResPub_->unlockAndPublish();
   }

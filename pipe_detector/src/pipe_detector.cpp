@@ -17,6 +17,7 @@
 #include <opencv2/core/types.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
+#include <rclcpp/qos.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 
 namespace image_pipeline
@@ -67,7 +68,7 @@ PipeDetector::PipeDetector(const rclcpp::NodeOptions & options)
   mFlipDirection_ = false;
 
   mInSub_ = create_subscription<sensor_msgs::msg::Image>(
-    mInTopic_, 10,
+    mInTopic_, rclcpp::SensorDataQoS(),
     std::bind(&PipeDetector::getFrame, this, std::placeholders::_1));
   mOutPub_.reset(
     new realtime_tools::RealtimePublisher<image_pipeline_msgs::msg::PipeDirection>(

@@ -77,7 +77,7 @@ ImageGetter::ImageGetter(const rclcpp::NodeOptions & options)
 void ImageGetter::processFrame(){
   cv::Mat frame;
   if (!mCam_.read(frame)) {
-    RCLCPP_WARN(get_logger(), "Failed to grab frame");
+    RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000, "Failed to grab frame");
     return;
   }
 

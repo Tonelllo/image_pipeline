@@ -1,5 +1,8 @@
 #include "buoy_color/multi_histogram_voting.hpp"
+#include <message_filters/subscriber.h>
 #include <opencv2/imgproc.hpp>
+#include <rclcpp/qos.hpp>
+#include <sensor_msgs/msg/detail/image__struct.hpp>
 
 namespace image_pipeline {
 void BuoyColor::initializeROSComponents() {

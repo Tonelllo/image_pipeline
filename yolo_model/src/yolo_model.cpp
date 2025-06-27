@@ -13,6 +13,7 @@
 // limitations under the License.
 #include <image_pipeline_msgs/msg/detail/bounding_box2_d_array__struct.hpp>
 #include <opencv2/imgproc/types_c.h>
+#include <rclcpp/qos.hpp>
 #include <sys/types.h>
 #include <memory>
 #include <opencv2/imgproc.hpp>
@@ -58,12 +59,12 @@ YoloModel::YoloModel(const rclcpp::NodeOptions & options)
     }
   });
   mInSub_ = create_subscription<sensor_msgs::msg::Image>(
-    mInTopic_, 10,
+    mInTopic_, rclcpp::SensorDataQoS(),
     std::bind(&YoloModel::processFrame, this, std::placeholders::_1));
   mOutPub_.reset(
     new realtime_tools::RealtimePublisher<sensor_msgs::msg::Image>(
       create_publisher<sensor_msgs::msg::Image>(
-        mOutTopic_, 1
+        mOutTopic_, rclcpp::SensorDataQoS()
       )
     )
   );

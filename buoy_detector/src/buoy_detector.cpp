@@ -17,6 +17,7 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
+#include <rclcpp/qos.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 
 namespace image_pipeline
@@ -70,7 +71,7 @@ BuoyDetector::BuoyDetector(const rclcpp::NodeOptions & options)
   });
 
   mInSub_ = create_subscription<sensor_msgs::msg::Image>(
-    mInTopic_, 10,
+    mInTopic_, rclcpp::SensorDataQoS(),
     std::bind(&BuoyDetector::getFrame, this, std::placeholders::_1));
 
   mBuoysPub_.reset(
