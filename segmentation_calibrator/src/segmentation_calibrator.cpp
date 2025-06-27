@@ -14,6 +14,7 @@
 
 #include <array>
 #include <opencv2/highgui.hpp>
+#include <rclcpp/qos.hpp>
 #include <segmentation_calibrator/segmentation_calibrator.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 
@@ -27,7 +28,7 @@ SegmentationCalibrator::SegmentationCalibrator(const rclcpp::NodeOptions & optio
   mInTopic_ = get_parameter("in_topic").as_string();
 
   mInSub_ = create_subscription<sensor_msgs::msg::Image>(
-    mInTopic_, 10,
+    mInTopic_, rclcpp::SensorDataQoS(),
     std::bind(&SegmentationCalibrator::getFrame, this, std::placeholders::_1));
   mHueMin_ = 0;
   mSatMin_ = 0;
