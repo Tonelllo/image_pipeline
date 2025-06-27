@@ -74,10 +74,20 @@ ImageGetter::ImageGetter(const rclcpp::NodeOptions & options)
     std::bind(&ImageGetter::processFrame, this));
 }
 void ImageGetter::processFrame(){
-  cv::Mat img;
-  mCam_.read(mCvPtr_->image);
-  if(mImagePublisher_->trylock()){
-    mImagePublisher_->msg_ = *mCvPtr_->toImageMsg();
+  cv::Mat frame;
+  if (!mCam_.read(frame)) {
+    RCLCPP_WARN(get_logger(), "Failed to grab frame");
+    return;
+  }
+
+  auto cv_ptr = std::make_shared<cv_bridge::CvImage>();
+  cv_ptr->header.stamp = now();
+  cv_ptr->header.frame_id = "camera";
+  cv_ptr->encoding = "bgr8";
+  cv_ptr->image   = frame;
+
+  if (mImagePublisher_->trylock()) {
+    mImagePublisher_->msg_ = *cv_ptr->toImageMsg();
     mImagePublisher_->unlockAndPublish();
   }
 }
