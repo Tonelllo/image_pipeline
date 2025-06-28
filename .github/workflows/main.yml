@@ -27,8 +27,8 @@ jobs:
           required-ros-distributions: humble
       - name: ROS style checks
         uses: ros-tooling/action-ros-ci@v0.4
-        import-token: ${{secrets.BIT_ACC_KEY}}
-        vcs-repo-file-url: ${{ github.workspace }}/required.repos
         with:
+          import-token: ${{ secrets.BIT_ACC_KEY }}
+          vcs-repo-file-url: ${{ github.workspace }}/required.repos
           package-name: image_pipeline_launcher
           target-ros2-distro: humble
