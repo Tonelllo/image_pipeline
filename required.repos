@@ -1,0 +1,5 @@
+repositories:
+  auv_core_helper:
+    type: git
+    url: https://Toni_-@bitbucket.org/isme_robotics/auv_core_helper.git
+    version: main
