@@ -22,6 +22,7 @@ find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(realtime_tools REQUIRED)
+find_package(image_transport REQUIRED)
 
 add_library(image_getter_component SHARED
   SHARED
@@ -35,6 +36,7 @@ target_link_libraries(image_getter_component PUBLIC
   ${cv_bridge_TARGETS}
   ${sensor_msgs_TARGETS}
   ${image_pipeline_msgs_TARGETS}
+  ${image_transport_TARGETS}
 )
 
 target_include_directories(image_getter_component PUBLIC
@@ -58,6 +60,7 @@ ament_export_dependencies(
   std_srvs
   rclcpp_components
   realtime_tools
+  image_transport
 )
 
 rclcpp_components_register_node(

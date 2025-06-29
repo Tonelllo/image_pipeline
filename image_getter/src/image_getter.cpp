@@ -23,6 +23,7 @@
 #include <rclcpp/logging.hpp>
 #include <rclcpp/qos.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
+#include <rmw/qos_profiles.h>
 #include <rmw/types.h>
 #include <sensor_msgs/image_encodings.hpp>
 #include <std_msgs/msg/detail/header__struct.hpp>
@@ -46,16 +47,6 @@ ImageGetter::ImageGetter(const rclcpp::NodeOptions & options)
   customQos.best_effort();
   customQos.durability_volatile();
 
-
-  // mImagePublisher_.reset(
-  //   new realtime_tools::RealtimePublisher<sensor_msgs::msg::Image>(
-  //     create_publisher<sensor_msgs::msg::Image>(
-  //       mImageTopic_,
-  //       customQos
-  //       )
-  //     )
-  //   );
-
   mHeartBeatPubisher_.reset(
     new realtime_tools::RealtimePublisher<std_msgs::msg::Empty>(
       create_publisher<std_msgs::msg::Empty>(
@@ -73,8 +64,6 @@ ImageGetter::ImageGetter(const rclcpp::NodeOptions & options)
   });
 
 
-  pubReady_ = false;
-
   std::string gst_str =
     "udpsrc port=5600 caps=application/x-rtp,media=video,encoding-name=H264,payload=96 ! rtph264depay ! h264parse ! nvv4l2decoder ! nvvidconv ! video/x-raw, format=BGRx ! videoconvert ! appsink";
 
@@ -84,35 +73,24 @@ ImageGetter::ImageGetter(const rclcpp::NodeOptions & options)
   if (!mCam_.isOpened()) {
     RCLCPP_ERROR(get_logger(), "UNABLE TO OPEN CAMERA STREAM");
   }
-  this->timer_ = this->create_wall_timer(
-    std::chrono::milliseconds(0),
-    std::bind(&ImageGetter::postInit, this));
 
-  mTimerCallback_ = create_wall_timer(
-    std::chrono::milliseconds(mTimerPeriod_),
-    std::bind(&ImageGetter::processFrame, this));
+  mStartTimer_ = this->create_wall_timer(
+    std::chrono::milliseconds(1000),
+    std::bind(&ImageGetter::postInit, this));
 }
 
 void ImageGetter::postInit()
 {
   // Cancel timer after first run
-  this->timer_->cancel();
+  this->mStartTimer_->cancel();
 
   // Now it's safe to use shared_from_this()
   image_transport::ImageTransport it(shared_from_this());
 
-
-  rmw_qos_profile_t customProfile;
-  customProfile.depth = 1;
-  customProfile.durability = rmw_qos_durability_policy_e::RMW_QOS_POLICY_DURABILITY_VOLATILE;
-  customProfile.reliability = rmw_qos_reliability_policy_e::RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
-  customProfile.liveliness = rmw_qos_liveliness_policy_e::RMW_QOS_POLICY_LIVELINESS_SYSTEM_DEFAULT;
-  customProfile.history = RMW_QOS_POLICY_HISTORY_KEEP_LAST;
-  customProfile.liveliness_lease_duration = {0, 0};  // Zero means default
-  customProfile.deadline = {0, 0};
-  customProfile.lifespan = {0, 0};
-  testPublisher = it.advertise("image_out", customProfile);
-  pubReady_ = true;
+  mImagePublisher_ = it.advertise(mImageTopic_, rmw_qos_profile_sensor_data);
+  mTimerCallback_ = create_wall_timer(
+    std::chrono::milliseconds(mTimerPeriod_),
+    std::bind(&ImageGetter::processFrame, this));
 }
 
 void ImageGetter::processFrame(){
@@ -126,15 +104,7 @@ void ImageGetter::processFrame(){
   hdr.frame_id = "camera";
   hdr.stamp = now();
 
-  // if (mImagePublisher_->trylock()) {
-  //   mImagePublisher_->msg_ = *cv_bridge::CvImage(hdr, sensor_msgs::image_encodings::BGR8, frame).toImageMsg();
-  //   mImagePublisher_->unlockAndPublish();
-  // }
-  if(!pubReady_){
-    return;
-  }
-  testPublisher.publish(*cv_bridge::CvImage(hdr, sensor_msgs::image_encodings::BGR8, frame).toImageMsg());
+  mImagePublisher_.publish(*cv_bridge::CvImage(hdr, sensor_msgs::image_encodings::BGR8, frame).toImageMsg());
 }
 }
 RCLCPP_COMPONENTS_REGISTER_NODE(image_pipeline::ImageGetter);
-
