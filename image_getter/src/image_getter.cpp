@@ -43,10 +43,6 @@ ImageGetter::ImageGetter(const rclcpp::NodeOptions & options)
   mHeartBeatRate_ = get_parameter("heartbeat_rate").as_int();
   mTimerPeriod_ = get_parameter("timer_period").as_int();
 
-  rclcpp::QoS customQos(1);
-  customQos.best_effort();
-  customQos.durability_volatile();
-
   mHeartBeatPubisher_.reset(
     new realtime_tools::RealtimePublisher<std_msgs::msg::Empty>(
       create_publisher<std_msgs::msg::Empty>(
@@ -55,6 +51,7 @@ ImageGetter::ImageGetter(const rclcpp::NodeOptions & options)
         )
       )
     );
+
   mHeartBeatTimer_ = create_wall_timer(
     std::chrono::milliseconds(mHeartBeatRate_),
     [this](){
