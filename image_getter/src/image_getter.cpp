@@ -38,11 +38,16 @@ ImageGetter::ImageGetter(const rclcpp::NodeOptions & options)
   mImageTopic_ = get_parameter("image_topic").as_string();
   mHeartBeatRate_ = get_parameter("heartbeat_rate").as_int();
   mTimerPeriod_ = get_parameter("timer_period").as_int();
+
+  rclcpp::QoS customQos(1);
+  customQos.best_effort();
+  customQos.durability_volatile();
+
   mImagePublisher_.reset(
     new realtime_tools::RealtimePublisher<sensor_msgs::msg::Image>(
       create_publisher<sensor_msgs::msg::Image>(
         mImageTopic_,
-        rclcpp::SensorDataQoS()
+        customQos
         )
       )
     );
