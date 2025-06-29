@@ -22,6 +22,8 @@
 #include <rclcpp/logging.hpp>
 #include <rclcpp/qos.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
+#include <sensor_msgs/image_encodings.hpp>
+#include <std_msgs/msg/detail/header__struct.hpp>
 
 namespace image_pipeline
 {
@@ -69,26 +71,22 @@ ImageGetter::ImageGetter(const rclcpp::NodeOptions & options)
   if (!mCam_.isOpened()) {
     RCLCPP_ERROR(get_logger(), "UNABLE TO OPEN CAMERA STREAM");
   }
-
   mTimerCallback_ = create_wall_timer(
     std::chrono::milliseconds(mTimerPeriod_),
     std::bind(&ImageGetter::processFrame, this));
 }
 void ImageGetter::processFrame(){
   cv::Mat frame;
-  if (!mCam_.read(frame)) {
+  if (!mCam_.read(frame) || frame.empty()) {
     RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000, "Failed to grab frame");
     return;
   }
 
-  auto cv_ptr = std::make_shared<cv_bridge::CvImage>();
-  cv_ptr->header.stamp = now();
-  cv_ptr->header.frame_id = "camera";
-  cv_ptr->encoding = "bgr8";
-  cv_ptr->image   = frame;
-
+  std_msgs::msg::Header hdr;
+  hdr.frame_id = "camera";
+  hdr.stamp = now();
   if (mImagePublisher_->trylock()) {
-    mImagePublisher_->msg_ = *cv_ptr->toImageMsg();
+    mImagePublisher_->msg_ = *cv_bridge::CvImage(hdr, sensor_msgs::image_encodings::BGR8, frame).toImageMsg();
     mImagePublisher_->unlockAndPublish();
   }
 }

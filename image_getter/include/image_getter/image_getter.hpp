@@ -31,7 +31,6 @@ public:
   explicit ImageGetter(const rclcpp::NodeOptions & options);
 
 private:
-  cv_bridge::CvImagePtr mCvPtr_;
   rclcpp::TimerBase::SharedPtr mHeartBeatTimer_;
   std::string mHeartBeatTopic_;
   std::string mImageTopic_;
