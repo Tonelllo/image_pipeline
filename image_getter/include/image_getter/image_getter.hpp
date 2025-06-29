@@ -13,7 +13,9 @@
 // limitations under the License.
 
 #pragma once
+#include <atomic>
 #include <cv_bridge/cv_bridge.h>
+#include <image_transport/publisher.hpp>
 #include <opencv2/videoio.hpp>
 #include <sensor_msgs/msg/detail/image__struct.hpp>
 #include <std_msgs/msg/empty.hpp>
@@ -22,6 +24,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include "realtime_tools/realtime_publisher.hpp"
+#include <image_transport/image_transport.hpp>
 
 namespace image_pipeline
 {
@@ -36,12 +39,14 @@ private:
   std::string mImageTopic_;
   int mTimerPeriod_;
   int mHeartBeatRate_;
+
   std::unique_ptr<realtime_tools::RealtimePublisher<std_msgs::msg::Empty>>
   mHeartBeatPubisher_;
-  std::unique_ptr<realtime_tools::RealtimePublisher<sensor_msgs::msg::Image>>
-  mImagePublisher_;
+  image_transport::Publisher mImagePublisher_;
   cv::VideoCapture mCam_;
   rclcpp::TimerBase::SharedPtr mTimerCallback_;
+  rclcpp::TimerBase::SharedPtr mStartTimer_;
   void processFrame();
+  void postInit();
 };
 }  // namespace image_pipeline
