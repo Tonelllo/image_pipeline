@@ -64,8 +64,7 @@ ImageGetter::ImageGetter(const rclcpp::NodeOptions & options)
   std::string gst_str =
     "udpsrc port=5600 caps=application/x-rtp,media=video,encoding-name=H264,payload=96 ! rtph264depay ! h264parse ! nvv4l2decoder ! nvvidconv ! video/x-raw, format=BGRx ! videoconvert ! appsink";
 
-  // mCam_ = cv::VideoCapture(gst_str, cv::CAP_GSTREAMER);
-  mCam_ = cv::VideoCapture("/home/tonello/Downloads/3-orbit.mkv");
+  mCam_ = cv::VideoCapture(gst_str, cv::CAP_GSTREAMER);
 
   if (!mCam_.isOpened()) {
     RCLCPP_ERROR(get_logger(), "UNABLE TO OPEN CAMERA STREAM");
