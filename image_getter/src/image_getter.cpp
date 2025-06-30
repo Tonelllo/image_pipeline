@@ -90,8 +90,8 @@ void ImageGetter::processFrame() {
     return;
   }
   latestFrameIdx.store(writeIdx);
-  cv::imshow("test", frameBuffer[writeIdx]);
-  cv::waitKey(1);
+  // cv::imshow("test", frameBuffer[writeIdx]);
+  // cv::waitKey(1);
 }
 
 void ImageGetter::publishFrame() {
