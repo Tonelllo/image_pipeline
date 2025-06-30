@@ -86,6 +86,9 @@ ImageGetter::ImageGetter(const rclcpp::NodeOptions & options)
     std::bind(&ImageGetter::publishFrame, this));
 }
 void ImageGetter::publishFrame(){
+  if(frame.empty()){
+    return;
+  }
   frameMutex.lock();
   cv::Mat tmp = frame.clone();
   frameMutex.unlock();
@@ -103,6 +106,8 @@ void ImageGetter::processFrame(){
   if (!mCam_.read(frame) || frame.empty()) {
     RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000, "Failed to grab frame");
     frameMutex.unlock();
+    cv::imshow("test", frame);
+    cv::waitKey(1);
     return;
   } else {
     frameMutex.unlock();
