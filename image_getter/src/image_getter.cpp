@@ -101,9 +101,11 @@ void ImageGetter::publishFrame() {
   std_msgs::msg::Header hdr;
   hdr.frame_id = "camera";
   hdr.stamp = now();
+  cv::imshow("test", frameBuffer[readIdx]);
+  cv::waitKey(1);
 
   if (mImagePublisher_->trylock()) {
-    mImagePublisher_->msg_ = *cv_bridge::CvImage(hdr, sensor_msgs::image_encodings::BGR8, frameBuffer[readIdx]).toImageMsg();
+    // mImagePublisher_->msg_ = *cv_bridge::CvImage(hdr, sensor_msgs::image_encodings::BGR8, frameBuffer[readIdx]).toImageMsg();
     mImagePublisher_->unlockAndPublish();
   }
 }
