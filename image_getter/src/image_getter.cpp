@@ -80,14 +80,16 @@ ImageGetter::ImageGetter(const rclcpp::NodeOptions & options)
     std::bind(&ImageGetter::publishFrame, this));
 }
 void ImageGetter::publishFrame(){
+  frameMutex.lock();
+  cv::Mat tmp = frame.clone();
+  frameMutex.unlock();
+
   std_msgs::msg::Header hdr;
   hdr.frame_id = "camera";
   hdr.stamp = now();
   if (mImagePublisher_->trylock()) {
-    frameMutex.lock();
-    mImagePublisher_->msg_ = *cv_bridge::CvImage(hdr, sensor_msgs::image_encodings::BGR8, frame).toImageMsg();
+    mImagePublisher_->msg_ = *cv_bridge::CvImage(hdr, sensor_msgs::image_encodings::BGR8, tmp).toImageMsg();
     mImagePublisher_->unlockAndPublish();
-    frameMutex.unlock();
   }
 }
 void ImageGetter::processFrame(){
