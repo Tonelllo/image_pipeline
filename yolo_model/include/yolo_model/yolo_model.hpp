@@ -36,7 +36,7 @@ private:
   std::string mOutDetectionTopic_;
   std::string mModelPath_;
   std::vector<std::string> mClasses_;
-  void processFrame(sensor_msgs::msg::Image::SharedPtr);
+  void processFrame();
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr mInSub_;
   std::unique_ptr<realtime_tools::RealtimePublisher<sensor_msgs::msg::Image>> mOutPub_;
   std::unique_ptr<realtime_tools::RealtimePublisher
@@ -44,7 +44,9 @@ private:
   cv_bridge::CvImagePtr mCvPtr_;
   std::unique_ptr<Inference> inf;
   std::string mTrtModelPath_;
+  cv::VideoCapture mCam_;
 
+  rclcpp::TimerBase::SharedPtr mTimer_;
   rclcpp::TimerBase::SharedPtr mHeartBeatTimer_;
   std::string mHeartBeatTopic_;
   int mHeartBeatRate_;

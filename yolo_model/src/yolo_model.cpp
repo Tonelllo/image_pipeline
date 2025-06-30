@@ -59,36 +59,38 @@ YoloModel::YoloModel(const rclcpp::NodeOptions & options)
       mHeartBeatPubisher_->unlockAndPublish();
     }
   });
-  mInSub_ = create_subscription<sensor_msgs::msg::Image>(
-    mInTopic_, rclcpp::SensorDataQoS(),
-    std::bind(&YoloModel::processFrame, this, std::placeholders::_1));
-  mOutPub_.reset(
-    new realtime_tools::RealtimePublisher<sensor_msgs::msg::Image>(
-      create_publisher<sensor_msgs::msg::Image>(
-        mOutTopic_, rclcpp::SensorDataQoS()
-      )
-    )
-  );
+
+  std::string gst_str =
+    "udpsrc port=5600 caps=application/x-rtp,media=video,encoding-name=H264,payload=96 ! rtph264depay ! h264parse ! nvv4l2decoder ! nvvidconv ! video/x-raw, format=BGRx ! videoconvert ! appsink";
+
+
+  mCam_ = cv::VideoCapture(gst_str, cv::CAP_GSTREAMER);
+
+  if (!mCam_.isOpened()) {
+    RCLCPP_ERROR(get_logger(), "UNABLE TO OPEN CAMERA STREAM");
+  }
 
   mOutDetectionPub_.reset(
     new realtime_tools::RealtimePublisher<image_pipeline_msgs::msg::BoundingBox2DArray>(
       create_publisher<image_pipeline_msgs::msg::BoundingBox2DArray>(
         mOutDetectionTopic_, 1
+        )
       )
-    )
-  );
+    );
+
+  mTimer_ = create_wall_timer(
+    std::chrono::milliseconds(30),
+    std::bind(&YoloModel::processFrame, this));
 
   inf = std::make_unique<Inference>(mModelPath_, cv::Size(640, 640), mClasses_, true);
 }
 
-void YoloModel::processFrame(sensor_msgs::msg::Image::SharedPtr img){
-  try {
-    mCvPtr_ = cv_bridge::toCvCopy(img, sensor_msgs::image_encodings::BGR8);
-  } catch (cv_bridge::Exception & e) {
-    RCLCPP_ERROR(get_logger(), "Error while decoding image: %s", e.what());
+void YoloModel::processFrame(){
+  cv::Mat frame;
+  if (!mCam_.read(frame) || frame.empty()) {
+    RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000, "Failed to grab frame");
     return;
   }
-  cv::Mat frame = mCvPtr_->image;
 
   if (mEngine_ == "cuda") {
     std::vector<Detection> output = inf->runInference(frame);
@@ -108,7 +110,7 @@ void YoloModel::processFrame(sensor_msgs::msg::Image::SharedPtr img){
 
       // Detection box text
       std::string classString = detection.className +
-        ' ' + std::to_string(detection.confidence).substr(0, 4);
+                                ' ' + std::to_string(detection.confidence).substr(0, 4);
       cv::Size textSize = cv::getTextSize(classString, cv::FONT_HERSHEY_DUPLEX, 1, 2, 0);
       cv::Rect textBox(box.x, box.y - 40, textSize.width + 10, textSize.height + 20);
 
@@ -126,13 +128,13 @@ void YoloModel::processFrame(sensor_msgs::msg::Image::SharedPtr img){
       bb2dArr.boxes.emplace_back(bb2d);
     }
     bb2dArr.header.stamp = now();
-    if(mOutDetectionPub_->trylock()){
+    if (mOutDetectionPub_->trylock()) {
       mOutDetectionPub_->msg_ = bb2dArr;
       mOutDetectionPub_->unlockAndPublish();
     }
   }
   mCvPtr_->image = frame;
-  if (mOutPub_->trylock()){
+  if (mOutPub_->trylock()) {
     mOutPub_->msg_ = *mCvPtr_->toImageMsg();
     mOutPub_->unlockAndPublish();
   }
