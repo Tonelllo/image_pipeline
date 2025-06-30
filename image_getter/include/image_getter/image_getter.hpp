@@ -46,6 +46,8 @@ private:
   rclcpp::TimerBase::SharedPtr mPubCallback_;
   void processFrame();
   void publishFrame();
+  cv::Mat frameBuffer[2];
+  std::atomic<int> latestFrameIdx;
   std::mutex frameMutex;
   cv::Mat frame;
 };

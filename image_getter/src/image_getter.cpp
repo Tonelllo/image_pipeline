@@ -28,7 +28,7 @@
 namespace image_pipeline
 {
 ImageGetter::ImageGetter(const rclcpp::NodeOptions & options)
-  : Node("image_getter", options)
+  : Node("image_getter", options), latestFrameIdx(0)
 {
   // declare_parameter("heartbeat_rate", 0);
   // declare_parameter("heartbeat_topic", "UNSET");
@@ -38,11 +38,11 @@ ImageGetter::ImageGetter(const rclcpp::NodeOptions & options)
   // mImageTopic_ = get_parameter("image_topic").as_string();
   // mHeartBeatRate_ = get_parameter("heartbeat_rate").as_int();
   // mTimerPeriod_ = get_parameter("timer_period").as_int();
-  
+
   mHeartBeatTopic_ = "test";
   mImageTopic_ = "testcam";
   mHeartBeatRate_ = 40;
-  mTimerPeriod_ = 40;
+  mTimerPeriod_ = 50;
 
   mImagePublisher_.reset(
     new realtime_tools::RealtimePublisher<sensor_msgs::msg::Image>(
@@ -85,32 +85,29 @@ ImageGetter::ImageGetter(const rclcpp::NodeOptions & options)
     std::chrono::milliseconds(mTimerPeriod_),
     std::bind(&ImageGetter::publishFrame, this));
 }
-void ImageGetter::publishFrame(){
-  if(frame.empty()){
+
+void ImageGetter::processFrame() {
+  int writeIdx = 1 - latestFrameIdx.load();
+  if (!mCam_.read(frameBuffer[writeIdx]) || frameBuffer[writeIdx].empty()) {
+    RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000, "Failed to grab frame");
     return;
   }
-  frameMutex.lock();
-  cv::Mat tmp = frame.clone();
-  frameMutex.unlock();
+  latestFrameIdx.store(writeIdx);
+  cv::imshow("test", frameBuffer[writeIdx]);
+  cv::waitKey(1);
+}
+
+void ImageGetter::publishFrame() {
+  int readIdx = latestFrameIdx.load();
+  if (frameBuffer[readIdx].empty()) return;
 
   std_msgs::msg::Header hdr;
   hdr.frame_id = "camera";
   hdr.stamp = now();
+
   if (mImagePublisher_->trylock()) {
-    mImagePublisher_->msg_ = *cv_bridge::CvImage(hdr, sensor_msgs::image_encodings::BGR8, tmp).toImageMsg();
+    mImagePublisher_->msg_ = *cv_bridge::CvImage(hdr, sensor_msgs::image_encodings::BGR8, frameBuffer[readIdx]).toImageMsg();
     mImagePublisher_->unlockAndPublish();
-  }
-}
-void ImageGetter::processFrame(){
-  frameMutex.lock();
-  if (!mCam_.read(frame) || frame.empty()) {
-    RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000, "Failed to grab frame");
-    frameMutex.unlock();
-    cv::imshow("test", frame);
-    cv::waitKey(1);
-    return;
-  } else {
-    frameMutex.unlock();
   }
 }
 }
