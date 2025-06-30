@@ -14,6 +14,7 @@
 
 #pragma once
 #include <cv_bridge/cv_bridge.h>
+#include <mutex>
 #include <opencv2/videoio.hpp>
 #include <sensor_msgs/msg/detail/image__struct.hpp>
 #include <std_msgs/msg/empty.hpp>
@@ -42,6 +43,10 @@ private:
   mImagePublisher_;
   cv::VideoCapture mCam_;
   rclcpp::TimerBase::SharedPtr mTimerCallback_;
+  rclcpp::TimerBase::SharedPtr mPubCallback_;
   void processFrame();
+  void publishFrame();
+  std::mutex frameMutex;
+  cv::Mat frame;
 };
 }  // namespace image_pipeline

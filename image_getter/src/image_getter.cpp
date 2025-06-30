@@ -74,20 +74,30 @@ ImageGetter::ImageGetter(const rclcpp::NodeOptions & options)
   mTimerCallback_ = create_wall_timer(
     std::chrono::milliseconds(mTimerPeriod_),
     std::bind(&ImageGetter::processFrame, this));
-}
-void ImageGetter::processFrame(){
-  cv::Mat frame;
-  if (!mCam_.read(frame) || frame.empty()) {
-    RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000, "Failed to grab frame");
-    return;
-  }
 
+  mPubCallback_ = create_wall_timer(
+    std::chrono::milliseconds(mTimerPeriod_),
+    std::bind(&ImageGetter::publishFrame, this));
+}
+void ImageGetter::publishFrame(){
   std_msgs::msg::Header hdr;
   hdr.frame_id = "camera";
   hdr.stamp = now();
   if (mImagePublisher_->trylock()) {
+    frameMutex.lock();
     mImagePublisher_->msg_ = *cv_bridge::CvImage(hdr, sensor_msgs::image_encodings::BGR8, frame).toImageMsg();
     mImagePublisher_->unlockAndPublish();
+    frameMutex.unlock();
+  }
+}
+void ImageGetter::processFrame(){
+  frameMutex.lock();
+  if (!mCam_.read(frame) || frame.empty()) {
+    RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000, "Failed to grab frame");
+    frameMutex.unlock();
+    return;
+  } else {
+    frameMutex.unlock();
   }
 }
 }
