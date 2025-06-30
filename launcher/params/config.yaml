@@ -123,7 +123,8 @@ image_pipeline/image_getter:
   ros__parameters:
     heartbeat_topic: /image_pipeline/image_getter/heartbeat
     image_topic: /camera/image_raw
-    timer_period: 30
+    process_period: 30
+    publish_period: 50
 
 image_pipeline/watchdog:
   ros__parameters:

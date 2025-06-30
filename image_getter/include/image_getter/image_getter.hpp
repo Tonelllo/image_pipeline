@@ -35,7 +35,8 @@ private:
   rclcpp::TimerBase::SharedPtr mHeartBeatTimer_;
   std::string mHeartBeatTopic_;
   std::string mImageTopic_;
-  int mTimerPeriod_;
+  int mProcessPeriod_;
+  int mPublishPeriod_;
   int mHeartBeatRate_;
   std::unique_ptr<realtime_tools::RealtimePublisher<std_msgs::msg::Empty>>
   mHeartBeatPubisher_;
