@@ -30,14 +30,20 @@ namespace image_pipeline
 ImageGetter::ImageGetter(const rclcpp::NodeOptions & options)
   : Node("image_getter", options)
 {
-  declare_parameter("heartbeat_rate", 0);
-  declare_parameter("heartbeat_topic", "UNSET");
-  declare_parameter("image_topic", "UNSET");
-  declare_parameter("timer_period", 0);
-  mHeartBeatTopic_ = get_parameter("heartbeat_topic").as_string();
-  mImageTopic_ = get_parameter("image_topic").as_string();
-  mHeartBeatRate_ = get_parameter("heartbeat_rate").as_int();
-  mTimerPeriod_ = get_parameter("timer_period").as_int();
+  // declare_parameter("heartbeat_rate", 0);
+  // declare_parameter("heartbeat_topic", "UNSET");
+  // declare_parameter("image_topic", "UNSET");
+  // declare_parameter("timer_period", 0);
+  // mHeartBeatTopic_ = get_parameter("heartbeat_topic").as_string();
+  // mImageTopic_ = get_parameter("image_topic").as_string();
+  // mHeartBeatRate_ = get_parameter("heartbeat_rate").as_int();
+  // mTimerPeriod_ = get_parameter("timer_period").as_int();
+  
+  mHeartBeatTopic_ = "test";
+  mImageTopic_ = "testcam";
+  mHeartBeatRate_ = 40;
+  mTimerPeriod_ = 40;
+
   mImagePublisher_.reset(
     new realtime_tools::RealtimePublisher<sensor_msgs::msg::Image>(
       create_publisher<sensor_msgs::msg::Image>(
