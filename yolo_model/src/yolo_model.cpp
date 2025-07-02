@@ -66,17 +66,17 @@ YoloModel::YoloModel(const rclcpp::NodeOptions & options)
     new realtime_tools::RealtimePublisher<sensor_msgs::msg::Image>(
       create_publisher<sensor_msgs::msg::Image>(
         mOutTopic_, rclcpp::SensorDataQoS()
+        )
       )
-    )
-  );
+    );
 
   mOutDetectionPub_.reset(
     new realtime_tools::RealtimePublisher<image_pipeline_msgs::msg::BoundingBox2DArray>(
       create_publisher<image_pipeline_msgs::msg::BoundingBox2DArray>(
         mOutDetectionTopic_, 1
+        )
       )
-    )
-  );
+    );
 
   inf = std::make_unique<Inference>(mModelPath_, cv::Size(640, 640), mClasses_, true);
 }
@@ -108,7 +108,7 @@ void YoloModel::processFrame(sensor_msgs::msg::Image::SharedPtr img){
 
       // Detection box text
       std::string classString = detection.className +
-        ' ' + std::to_string(detection.confidence).substr(0, 4);
+                                ' ' + std::to_string(detection.confidence).substr(0, 4);
       cv::Size textSize = cv::getTextSize(classString, cv::FONT_HERSHEY_DUPLEX, 1, 2, 0);
       cv::Rect textBox(box.x, box.y - 40, textSize.width + 10, textSize.height + 20);
 
@@ -124,15 +124,18 @@ void YoloModel::processFrame(sensor_msgs::msg::Image::SharedPtr img){
       bb2d.conf = detection.confidence;
       bb2d.desc = detection.className;
       bb2dArr.boxes.emplace_back(bb2d);
+      if (!bb2dArr.boxes.empty()) {
+        cv::imwrite("~/yolo/images/"+ std::to_string(now().seconds())+"::"+std::to_string(now().nanoseconds())+".jpg", frame);
+      }
     }
     bb2dArr.header.stamp = now();
-    if(mOutDetectionPub_->trylock()){
+    if (mOutDetectionPub_->trylock()) {
       mOutDetectionPub_->msg_ = bb2dArr;
       mOutDetectionPub_->unlockAndPublish();
     }
   }
   mCvPtr_->image = frame;
-  if (mOutPub_->trylock()){
+  if (mOutPub_->trylock()) {
     mOutPub_->msg_ = *mCvPtr_->toImageMsg();
     mOutPub_->unlockAndPublish();
   }

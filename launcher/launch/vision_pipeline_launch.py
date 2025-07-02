@@ -134,7 +134,7 @@ def generate_launch_description():
             name='watchdog_container',
             namespace='image_pipeline',
             package='rclcpp_components',
-            executable='component_container',
+            executable='component_container_mt',
             composable_node_descriptions=[
                 watchdog
             ],
