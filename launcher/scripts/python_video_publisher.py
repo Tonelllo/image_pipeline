@@ -25,11 +25,13 @@ class VideoPublisher(Node):
         super().__init__('video_publisher', namespace='image_pipeline')
 
         # Create a publisher to send Image messages
-        self.publisher = self.create_publisher(Image, 'fake_video', 10)
+        self.publisher = self.create_publisher(Image, '/testing/sf/AUV/rgb_camera', 10)
 
         # Initialize OpenCV to read video
+        # self.video_capture = cv2.VideoCapture(
+        #     '/home/tonelllo/ros2_ws/src/image_pipeline/media/underwater.mp4')
         self.video_capture = cv2.VideoCapture(
-            '/home/tonelllo/ros2_ws/src/image_pipeline/media/underwater.mp4')
+            '/home/tonello/Downloads/3-orbit.mkv')
 
         # Create CvBridge to convert OpenCV images to ROS2 Image messages
         self.bridge = CvBridge()

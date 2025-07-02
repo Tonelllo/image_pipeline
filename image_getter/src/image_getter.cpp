@@ -63,9 +63,11 @@ ImageGetter::ImageGetter(const rclcpp::NodeOptions & options)
   });
 
 
-  std::string gst_str = "udpsrc port=5600 caps=application/x-rtp,media=video,encoding-name=H264,payload=96,clock-rate=90000 !rtpjitterbuffer latency=0 ! rtph264depay ! h264parse ! nvv4l2decoder enable-max-performance=1 disable-dpb=1 ! nvvidconv ! video/x-raw, format=BGRx ! videoconvert ! appsink sync=false drop=true";
+  std::string gst_str = "udpsrc port=5600 caps=application/x-rtp,media=video,encoding-name=H264,payload=96,clock-rate=90000 ! rtpjitterbuffer latency=0 ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! appsink sync=false drop=true";
+
 
   mCam_ = cv::VideoCapture(gst_str, cv::CAP_GSTREAMER);
+  // mCam_ = cv::VideoCapture("/home/tonello/Downloads/3-orbit.mkv");
 
   if (!mCam_.isOpened()) {
     RCLCPP_ERROR(get_logger(), "UNABLE TO OPEN CAMERA STREAM");

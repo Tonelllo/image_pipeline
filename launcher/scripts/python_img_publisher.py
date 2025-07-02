@@ -33,14 +33,14 @@ class VideoPublisher(Node):
     def __init__(self):
         super().__init__('video_publisher', namespace='image_pipeline')
 
-        self.publisher = self.create_publisher(Image, 'fake_video', 10)
+        self.publisher = self.create_publisher(Image, '/testing/sf/AUV/rgb_camera', 10)
 
         # self.img = cv2.imread(
         #     '/home/tonelllo/ros2_ws/src/image_pipeline/media/test/buoys.png')
-        self.img = cv2.imread(
-            '/home/tonello/ros2_ws/src/image_pipeline/media/red_buoy.png')
         # self.img = cv2.imread(
-        #     '/home/tonelllo/ros2_ws/src/image_pipeline/media/test/buoys.png')
+        #     '/home/tonello/ros2_ws/src/image_pipeline/media/red_buoy.png')
+        self.img = cv2.imread(
+            '/home/tonello/ros2_ws/src/image_pipeline/media/buoys.png')
         # self.img = cv2.imread(
         #     '/home/tonelllo/ros2_ws/src/image_pipeline/media/red_buoy.png')
         # self.img = cv2.imread(
@@ -55,9 +55,11 @@ class VideoPublisher(Node):
 
     def publish_frame(self):
         out = rotate_image(self.img, self.angle)
-        self.angle += 1
-        height = 384
-        width = 640
+        self.angle += 0 # 1
+        # height = 384
+        # width = 640
+        height = 200
+        width = 200
         start_time = time.time()
         resized_image = cv2.resize(out, (width, height))
         end_time = time.time()
@@ -65,9 +67,11 @@ class VideoPublisher(Node):
         ros_image = self.bridge.cv2_to_imgmsg(resized_image, encoding="bgr8")
 
         # Publish the image
+        ros_image.header.stamp = self.get_clock().now().to_msg()
         self.publisher.publish(ros_image)
 
         self.get_logger().info('Publishing a frame')
+        time.sleep(0.5)
 
 
 def main(args=None):

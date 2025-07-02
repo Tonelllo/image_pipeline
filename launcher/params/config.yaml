@@ -79,8 +79,8 @@ image_pipeline/yolo_model:
     in_topic: /camera/image_raw
     out_topic: yolo_detected
     out_detection: /camera/yolo_detections
-    cuda_model_path: /home/jetson/ros2_ws/src/image_pipeline/yolo_model/models/buoy_improvement.onnx
-    tensorrt_model_path: /home/jetson/ros2_ws/src/image_pipeline/yolo_model/models/
+    cuda_model_path: /home/tonello/ros2_ws/src/image_pipeline/yolo_model/models/buoy_improvement.onnx
+    tensorrt_model_path: /home/tonello/ros2_ws/src/image_pipeline/yolo_model/models/
     heartbeat_topic: /image_pipeline/yolo_model/heartbeat
     classes:
       - "0"
@@ -103,10 +103,10 @@ image_pipeline/buoy_color:
     in_detection_topic: /camera/yolo_detections
     out_topic: /camera/object_colors
     hist_paths:
-      - /home/jetson/ros2_ws/src/image_pipeline/buoy_color/hist/red_histograms.json
-      - /home/jetson/ros2_ws/src/image_pipeline/buoy_color/hist/white_histograms.json
-      - /home/jetson/ros2_ws/src/image_pipeline/buoy_color/hist/yellow_histograms.json
-    json_file_path: /home/jetson/ros2_ws/src/image_pipeline/buoy_color/config/color_weigths.json
+      - /home/tonello/ros2_ws/src/image_pipeline/buoy_color/hist/red_histograms.json
+      - /home/tonello/ros2_ws/src/image_pipeline/buoy_color/hist/white_histograms.json
+      - /home/tonello/ros2_ws/src/image_pipeline/buoy_color/hist/yellow_histograms.json
+    json_file_path: /home/tonello/ros2_ws/src/image_pipeline/buoy_color/config/color_weigths.json
     hist_threshold: 0.9
     min_votes_required: 2
     show_debug_prints: false

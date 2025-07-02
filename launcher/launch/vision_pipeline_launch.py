@@ -123,9 +123,9 @@ def generate_launch_description():
                 # color_enhancer_component,
                 # pipe_detector_component,
                 # buoy_detector_component,
-                yolo_model_component,
                 buoy_color_component,
                 camera_info_publisher,
+                yolo_model_component,
                 image_getter,
             ],
             output='screen'
