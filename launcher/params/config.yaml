@@ -81,6 +81,7 @@ image_pipeline/yolo_model:
     out_detection: /camera/yolo_detections
     cuda_model_path: /home/jetson/ros2_ws/src/image_pipeline/yolo_model/models/buoy_improvement.onnx
     tensorrt_model_path: /home/jetson/ros2_ws/src/image_pipeline/yolo_model/models/
+    save_detections: false
     heartbeat_topic: /image_pipeline/yolo_model/heartbeat
     classes:
       - "0"

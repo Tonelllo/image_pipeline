@@ -44,6 +44,7 @@ private:
   cv_bridge::CvImagePtr mCvPtr_;
   std::unique_ptr<Inference> inf;
   std::string mTrtModelPath_;
+  bool mSaveDetections_;
 
   rclcpp::TimerBase::SharedPtr mHeartBeatTimer_;
   std::string mHeartBeatTopic_;

@@ -35,6 +35,7 @@ YoloModel::YoloModel(const rclcpp::NodeOptions & options)
   declare_parameter("classes", std::vector<std::string>());
   declare_parameter("heartbeat_rate", 0);
   declare_parameter("heartbeat_topic", "UNSET");
+  declare_parameter("save_detections", false);
   mEngine_ = get_parameter("engine").as_string();
   mInTopic_ = get_parameter("in_topic").as_string();
   mOutTopic_ = get_parameter("out_topic").as_string();
@@ -44,6 +45,7 @@ YoloModel::YoloModel(const rclcpp::NodeOptions & options)
   mTrtModelPath_ = get_parameter("tensorrt_model_path").as_string();
   mHeartBeatTopic_ = get_parameter("heartbeat_topic").as_string();
   mHeartBeatRate_ = get_parameter("heartbeat_rate").as_int();
+  mSaveDetections_ = get_parameter("save_detections").as_bool();
   mHeartBeatPubisher_.reset(
     new realtime_tools::RealtimePublisher<std_msgs::msg::Empty>(
       create_publisher<std_msgs::msg::Empty>(
@@ -124,7 +126,7 @@ void YoloModel::processFrame(sensor_msgs::msg::Image::SharedPtr img){
       bb2d.conf = detection.confidence;
       bb2d.desc = detection.className;
       bb2dArr.boxes.emplace_back(bb2d);
-      if (!bb2dArr.boxes.empty()) {
+      if (mSaveDetections_ && !bb2dArr.boxes.empty()) {
         cv::imwrite("~/yolo/images/"+ std::to_string(now().seconds())+"::"+std::to_string(now().nanoseconds())+".jpg", frame);
       }
     }
